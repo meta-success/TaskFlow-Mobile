@@ -1,0 +1,52 @@
+import React, {useEffect} from 'react';
+import {StatusBar, StyleSheet} from 'react-native';
+import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {AppNavigator} from './src/navigation/AppNavigator';
+import {useAppStore} from './src/store/useAppStore';
+import {colors} from './src/theme';
+
+const navTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: colors.bg,
+    card: colors.bg,
+    text: colors.text,
+    border: colors.border,
+    primary: colors.primary,
+  },
+};
+
+export default function App() {
+  const hydrate = useAppStore((state) => state.hydrate);
+
+  useEffect(() => {
+    let cleanup = () => {};
+    hydrate().then((unsubscribe) => {
+      if (typeof unsubscribe === 'function') {
+        cleanup = unsubscribe;
+      }
+    });
+    return () => cleanup();
+  }, [hydrate]);
+
+  return (
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider>
+        <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
+        <NavigationContainer theme={navTheme}>
+          <AppNavigator />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
+});
