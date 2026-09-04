@@ -1,7 +1,17 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, View} from 'react-native';
 import {colors, radius} from '../theme';
 import {formatTime} from '../utils/format';
+
+const mascot = require('../../assets/mascot.jpg');
+
+function AuraAvatar() {
+  return (
+    <View style={styles.avatar}>
+      <Image source={mascot} style={styles.avatarImage} />
+    </View>
+  );
+}
 
 export function ChatBubble({message}) {
   const isUser = message.role === 'user';
@@ -9,11 +19,7 @@ export function ChatBubble({message}) {
 
   return (
     <View style={[styles.row, isUser ? styles.rowUser : styles.rowAssistant]}>
-      {!isUser ? (
-        <View style={styles.avatar}>
-          <Text style={styles.avatarMark}>A</Text>
-        </View>
-      ) : null}
+      {!isUser ? <AuraAvatar /> : null}
       <View
         style={[
           styles.bubble,
@@ -21,10 +27,7 @@ export function ChatBubble({message}) {
           isError && styles.error,
         ]}>
         <Text style={styles.text}>{message.content}</Text>
-        <View style={styles.meta}>
-          <Text style={styles.time}>{formatTime(message.createdAt)}</Text>
-          {message.model ? <Text style={styles.model}>{message.model}</Text> : null}
-        </View>
+        <Text style={styles.time}>{formatTime(message.createdAt)}</Text>
         {message.citations?.length ? (
           <View style={styles.citePill}>
             <Text style={styles.cite}>
@@ -41,9 +44,7 @@ export function ChatBubble({message}) {
 export function TypingDots() {
   return (
     <View style={styles.row}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarMark}>A</Text>
-      </View>
+      <AuraAvatar />
       <View style={[styles.bubble, styles.assistant, styles.typing]}>
         <Text style={styles.typingText}>Aura is composing</Text>
       </View>
@@ -64,20 +65,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     marginRight: 8,
-    backgroundColor: colors.primarySoft,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    backgroundColor: '#1E1B4B',
   },
-  avatarMark: {
-    color: colors.accent,
-    fontWeight: '800',
-    fontSize: 12,
+  avatarImage: {
+    width: 32,
+    height: 32,
   },
   bubble: {
     maxWidth: '82%',
@@ -103,20 +102,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 23,
   },
-  meta: {
-    marginTop: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
   time: {
     color: 'rgba(247,241,255,0.55)',
     fontSize: 11,
-  },
-  model: {
-    color: colors.accent,
-    fontSize: 11,
-    fontWeight: '700',
+    marginTop: 8,
   },
   citePill: {
     marginTop: 8,
