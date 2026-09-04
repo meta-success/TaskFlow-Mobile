@@ -48,19 +48,6 @@ export const ENV = {
     'EXPO_PUBLIC_SUPABASE_ANON_KEY',
     'SUPABASE_ANON_KEY',
   ),
-
-  FIREBASE_ENABLED: Boolean(
-    trim(process.env.EXPO_PUBLIC_FIREBASE_ENABLED) === 'true' ||
-      local.FIREBASE_ENABLED,
-  ),
-  GOOGLE_WEB_CLIENT_ID: fromPublic(
-    'EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID',
-    'GOOGLE_WEB_CLIENT_ID',
-  ),
-  GOOGLE_IOS_CLIENT_ID: fromPublic(
-    'EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID',
-    'GOOGLE_IOS_CLIENT_ID',
-  ),
 };
 
 export const getOpenAiKey = () => ENV.OPENAI_API_KEY;
@@ -70,7 +57,6 @@ export const hasGeminiKey = () => Boolean(ENV.GEMINI_API_KEY);
 export const hasOpenRouterKey = () => Boolean(ENV.OPENROUTER_API_KEY);
 export const hasSupabaseConfig = () =>
   Boolean(ENV.SUPABASE_URL && ENV.SUPABASE_ANON_KEY);
-export const hasGoogleSignInConfig = () => Boolean(ENV.GOOGLE_WEB_CLIENT_ID);
 
 export const MODEL_CATALOG = {
   openai: [

@@ -37,9 +37,9 @@ Aura is a dark, production-styled assistant. The default cloud path is **your Op
        ▼
 ┌──────────────────────────┐     ┌─────────────────────────────┐
 │ Supabase                 │     │ Expo                        │
-│ • Email / password auth  │     │ • Google Sign-In (OAuth)    │
-│ • PostgreSQL `chats`     │     │ • Push notifications        │
-│ • documents + tokens     │     │ • Document picker           │
+│ • Email / password auth  │     │ • Document picker           │
+│ • PostgreSQL `chats`     │     │ • Splash + status bar       │
+│ • documents              │     │                             │
 └──────────────────────────┘     └─────────────────────────────┘
 ```
 
@@ -50,7 +50,6 @@ Aura is a dark, production-styled assistant. The default cloud path is **your Op
 3. If the device is **online**, `aiService` calls **OpenAI** (`https://api.openai.com/v1/chat/completions`) with your key. Gemini and OpenRouter remain optional.
 4. If the device is **offline** (or On-device is selected), `onDeviceModel` runs local TensorFlow.js inference and returns an Edge reply.
 5. The conversation is cached in Zustand / AsyncStorage and upserted into Supabase `chats`.
-6. Expo Notifications can alert the device when a longer background AI job finishes.
 
 ---
 
@@ -129,43 +128,13 @@ You need two values: the **project URL** and the **anon public key**.
      Do **not** use the `service_role` key in the app.
 5. Paste both into the project-root `.env` file.
 6. **Authentication → Providers → Email** → enable Email.
-7. In **SQL Editor**, run [`supabase/schema.sql`](supabase/schema.sql) so `chats`, `documents`, and `device_tokens` exist.
+7. In **SQL Editor**, run [`supabase/schema.sql`](supabase/schema.sql) so `chats` and `documents` exist.
 
 Restart Expo after saving `.env`: `npm.cmd start -- --clear`.
 
 Guest mode works without Supabase. Email sign-in and cloud chat history need these keys.
 
----
-
-## Firebase / Google keys (Expo Go)
-
-This Expo app does **not** need `google-services.json` for daily use in Expo Go. What you actually add to `.env` is a **Google OAuth Web client ID**.
-
-### Google Sign-In (used by the app)
-
-1. Open [Google Cloud Console](https://console.cloud.google.com/).
-2. Create a project (or pick one) and enable **Google Identity / OAuth**.
-3. **APIs & Services → Credentials → Create credentials → OAuth client ID**.
-4. If asked, configure the OAuth consent screen (External, add your email as a test user).
-5. Application type: **Web application**.
-6. Add authorized redirect URIs:
-   - `https://auth.expo.io/@YOUR_EXPO_USERNAME/aura-ai-mobile`
-   - `auraai://`
-7. Copy the **Client ID** (`….apps.googleusercontent.com`) into `.env`:
-
-   `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-id.apps.googleusercontent.com`
-
-Optional iOS client ID (native builds): `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`.
-
-### If you also want a Firebase project
-
-1. Open [Firebase Console](https://console.firebase.google.com/).
-2. **Add project** → you can select the same Google Cloud project.
-3. Project settings (gear) → **Your apps** is only required for a **development/production build**, not Expo Go.
-4. For push later: enable **Cloud Messaging**. Expo Go cannot use custom FCM; use an Expo development build.
-5. Set `EXPO_PUBLIC_FIREBASE_ENABLED=true` only when you are on a native build that should register push tokens.
-
-Never commit `.env`, `google-services.json`, or `GoogleService-Info.plist`.
+Never commit `.env`.
 
 ---
 
@@ -179,7 +148,6 @@ src/
   services/onDeviceModel.js     # TFJS edge sentiment + local embeddings
   services/ragService.js        # Chunk, embed, retrieve, augment
   services/supabaseClient.js    # Auth + chats table
-  services/firebaseClient.js    # Expo Google Sign-In + notifications
   store/useAppStore.js          # Zustand global state
   screens/                      # Home, Chat, Documents, Settings, Auth
   navigation/AppNavigator.js    # React Navigation tabs + auth stack

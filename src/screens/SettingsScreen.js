@@ -1,5 +1,5 @@
 import React from 'react';
-import {Pressable, StyleSheet, Switch, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Ionicons} from '@expo/vector-icons';
 import {PrimaryButton} from '../components/PrimaryButton';
@@ -10,7 +10,6 @@ import {
   MODEL_CATALOG,
   getOpenAiKey,
   hasGeminiKey,
-  hasGoogleSignInConfig,
   hasOpenAiKey,
   hasOpenRouterKey,
   hasSupabaseConfig,
@@ -52,14 +51,10 @@ export function SettingsScreen() {
   const openaiModel = useAppStore((state) => state.openaiModel);
   const geminiModel = useAppStore((state) => state.geminiModel);
   const openrouterModel = useAppStore((state) => state.openrouterModel);
-  const notificationsEnabled = useAppStore((state) => state.notificationsEnabled);
   const setProvider = useAppStore((state) => state.setProvider);
   const setOpenAiModel = useAppStore((state) => state.setOpenAiModel);
   const setGeminiModel = useAppStore((state) => state.setGeminiModel);
   const setOpenrouterModel = useAppStore((state) => state.setOpenrouterModel);
-  const setNotificationsEnabled = useAppStore(
-    (state) => state.setNotificationsEnabled,
-  );
   const signOut = useAppStore((state) => state.signOut);
   const user = useAppStore((state) => state.user);
 
@@ -112,13 +107,7 @@ export function SettingsScreen() {
             icon="server-outline"
             label="Supabase"
             ok={hasSupabaseConfig()}
-            detail={hasSupabaseConfig() ? 'Ready' : 'Optional'}
-          />
-          <StatusRow
-            icon="logo-google"
-            label="Google"
-            ok={hasGoogleSignInConfig()}
-            detail={hasGoogleSignInConfig() ? 'Ready' : 'Optional'}
+            detail={hasSupabaseConfig() ? 'Ready' : 'Add to .env'}
           />
           <StatusRow
             icon="flash-outline"
@@ -162,23 +151,14 @@ export function SettingsScreen() {
           </>
         ) : null}
 
-        <View style={styles.switchRow}>
-          <Ionicons name="notifications-outline" size={18} color={colors.accent} />
-          <Text style={styles.switchLabel}>Notifications</Text>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
-            thumbColor={colors.text}
-            trackColor={{true: colors.primary, false: colors.border}}
+        <View style={styles.signOut}>
+          <PrimaryButton
+            icon="log-out-outline"
+            label="Sign out"
+            variant="danger"
+            onPress={signOut}
           />
         </View>
-
-        <PrimaryButton
-          icon="log-out-outline"
-          label="Sign out"
-          variant="danger"
-          onPress={signOut}
-        />
       </SafeAreaView>
     </Screen>
   );
@@ -261,21 +241,7 @@ const styles = StyleSheet.create({
   chipTextOn: {
     color: colors.accent,
   },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    marginVertical: 18,
-  },
-  switchLabel: {
-    flex: 1,
-    color: colors.text,
-    fontWeight: '700',
+  signOut: {
+    marginTop: 22,
   },
 });

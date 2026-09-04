@@ -22,13 +22,6 @@ create table if not exists public.documents (
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.device_tokens (
-  token text primary key,
-  user_id uuid not null references auth.users (id) on delete cascade,
-  platform text,
-  updated_at timestamptz not null default now()
-);
-
 create index if not exists chats_user_updated_idx
   on public.chats (user_id, updated_at desc);
 
@@ -37,7 +30,6 @@ create index if not exists documents_user_idx
 
 alter table public.chats enable row level security;
 alter table public.documents enable row level security;
-alter table public.device_tokens enable row level security;
 
 create policy "Users manage their chats"
   on public.chats
@@ -47,12 +39,6 @@ create policy "Users manage their chats"
 
 create policy "Users manage their documents"
   on public.documents
-  for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
-
-create policy "Users manage their device tokens"
-  on public.device_tokens
   for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);

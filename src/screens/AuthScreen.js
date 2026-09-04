@@ -16,7 +16,7 @@ import {AuroraBackground} from '../components/AuroraBackground';
 import {AuraLogo} from '../components/AuraLogo';
 import {useAppStore} from '../store/useAppStore';
 import {colors, typography} from '../theme';
-import {hasGoogleSignInConfig, hasSupabaseConfig} from '../config/env';
+import {hasSupabaseConfig} from '../config/env';
 
 export function AuthScreen() {
   const [mode, setMode] = useState('signin');
@@ -24,7 +24,6 @@ export function AuthScreen() {
   const [password, setPassword] = useState('');
   const signInWithEmail = useAppStore((state) => state.signInWithEmail);
   const signUpWithEmail = useAppStore((state) => state.signUpWithEmail);
-  const signInWithGoogle = useAppStore((state) => state.signInWithGoogle);
   const continueAsGuest = useAppStore((state) => state.continueAsGuest);
   const authLoading = useAppStore((state) => state.authLoading);
   const globalError = useAppStore((state) => state.globalError);
@@ -101,16 +100,6 @@ export function AuthScreen() {
                   loading={authLoading}
                   disabled={!email || !password || !hasSupabaseConfig()}
                 />
-                {hasGoogleSignInConfig() ? (
-                  <PrimaryButton
-                    icon="logo-google"
-                    label="Continue with Google"
-                    variant="ghost"
-                    onPress={signInWithGoogle}
-                    loading={authLoading}
-                    iconColor="#FFFFFF"
-                  />
-                ) : null}
                 <PrimaryButton
                   icon="sparkles-outline"
                   label="Continue as guest"

@@ -12,8 +12,4 @@ module.exports = {
 
   SUPABASE_URL: 'https://YOUR_PROJECT.supabase.co',
   SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
-
-  FIREBASE_ENABLED: true,
-  GOOGLE_WEB_CLIENT_ID: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
-  GOOGLE_IOS_CLIENT_ID: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
 };

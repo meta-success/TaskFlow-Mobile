@@ -38,7 +38,7 @@ const requireClient = () => {
   const supabase = getSupabase();
   if (!supabase) {
     throw new Error(
-      'Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY to src/config/env.local.js.',
+      'Supabase is not configured. Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to .env.',
     );
   }
   return supabase;
@@ -59,18 +59,6 @@ export async function signUpWithEmail(email, password) {
   const {data, error} = await requireClient().auth.signUp({
     email,
     password,
-  });
-  if (error) {
-    throw error;
-  }
-  return data;
-}
-
-export async function signInWithGoogleIdToken(idToken, accessToken) {
-  const {data, error} = await requireClient().auth.signInWithIdToken({
-    provider: 'google',
-    token: idToken,
-    access_token: accessToken,
   });
   if (error) {
     throw error;
@@ -203,19 +191,3 @@ export async function deleteDocumentRow(userId, documentId) {
   }
 }
 
-export async function saveDeviceToken(userId, token) {
-  const {error} = await requireClient()
-    .from('device_tokens')
-    .upsert(
-      {
-        user_id: userId,
-        token,
-        platform: 'android',
-        updated_at: new Date().toISOString(),
-      },
-      {onConflict: 'token'},
-    );
-  if (error) {
-    throw error;
-  }
-}

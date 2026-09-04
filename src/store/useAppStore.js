@@ -25,20 +25,12 @@ import {
   getCurrentSession,
   isSupabaseConfigured,
   signInWithEmail as supabaseSignIn,
-  signInWithGoogleIdToken,
   signOutSupabase,
   signUpWithEmail as supabaseSignUp,
   subscribeToAuth,
   upsertChat,
   upsertDocumentRow,
 } from '../services/supabaseClient';
-import {
-  configureGoogleSignIn,
-  registerPushNotifications,
-  signInWithGoogle,
-  signOutGoogle,
-  subscribeToForegroundMessages,
-} from '../services/firebaseClient';
 
 const STORAGE_KEY = 'aura-ai-store-v1';
 
@@ -50,7 +42,6 @@ const persistable = (state) => ({
   openaiModel: state.openaiModel,
   geminiModel: state.geminiModel,
   openrouterModel: state.openrouterModel,
-  notificationsEnabled: state.notificationsEnabled,
   conversations: state.conversations,
   documents: state.documents,
   currentConversationId: state.currentConversationId,
@@ -97,7 +88,6 @@ export const useAppStore = create((set, get) => ({
   openaiModel: 'gpt-4o-mini',
   geminiModel: 'gemini-2.0-flash',
   openrouterModel: 'openai/gpt-4o-mini',
-  notificationsEnabled: true,
 
   conversations: [],
   currentConversationId: null,
@@ -105,7 +95,6 @@ export const useAppStore = create((set, get) => ({
   documents: [],
   ragLoading: false,
   lastSentiment: null,
-  lastNotification: null,
 
   setNotice: (notice) => set({notice}),
   setGlobalError: (globalError) => set({globalError}),
@@ -125,8 +114,6 @@ export const useAppStore = create((set, get) => ({
     set({openrouterModel});
     savePersisted(get());
   },
-  setNotificationsEnabled: (notificationsEnabled) =>
-    set({notificationsEnabled}),
 
   hydrate: async () => {
     const cached = await loadPersisted();
@@ -149,8 +136,6 @@ export const useAppStore = create((set, get) => ({
       set({isOnline: Boolean(state.isConnected && state.isInternetReachable !== false)});
     });
 
-    configureGoogleSignIn();
-
     let unsubscribeAuth = () => {};
     if (isSupabaseConfigured()) {
       try {
@@ -158,9 +143,6 @@ export const useAppStore = create((set, get) => ({
         if (user) {
           set({session, user});
           await get().syncCloudData(user.id);
-          if (get().notificationsEnabled) {
-            registerPushNotifications(user.id);
-          }
         }
       } catch (error) {
         set({globalError: error.message});
@@ -172,22 +154,9 @@ export const useAppStore = create((set, get) => ({
       });
     }
 
-    const unsubscribePush = subscribeToForegroundMessages((remoteMessage) => {
-      set({
-        lastNotification: {
-          title: remoteMessage?.notification?.title || 'Aura AI',
-          body: remoteMessage?.notification?.body || 'Background AI job update',
-          data: remoteMessage?.data || {},
-          receivedAt: new Date().toISOString(),
-        },
-        notice: remoteMessage?.notification?.body || 'Background AI job update',
-      });
-    });
-
     return () => {
       unsubscribeNet();
       unsubscribeAuth();
-      unsubscribePush();
     };
   },
 
@@ -217,7 +186,6 @@ export const useAppStore = create((set, get) => ({
       set({session, user, authLoading: false});
       if (user) {
         await get().syncCloudData(user.id);
-        registerPushNotifications(user.id);
       }
     } catch (error) {
       set({authLoading: false, globalError: error.message});
@@ -242,42 +210,6 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
-  signInWithGoogle: async () => {
-    set({authLoading: true, globalError: null});
-    try {
-      const google = await signInWithGoogle();
-      let session = null;
-      let user = google.user
-        ? {
-            id: google.user.id,
-            email: google.user.email,
-            user_metadata: {
-              full_name: google.user.name,
-              avatar_url: google.user.photo,
-            },
-          }
-        : null;
-
-      if (isSupabaseConfigured() && google.idToken) {
-        const synced = await signInWithGoogleIdToken(
-          google.idToken,
-          google.accessToken,
-        );
-        session = synced.session;
-        user = synced.user;
-      }
-
-      set({session, user, authLoading: false});
-      if (user?.id) {
-        await get().syncCloudData(user.id);
-        registerPushNotifications(user.id);
-      }
-    } catch (error) {
-      set({authLoading: false, globalError: error.message});
-      throw error;
-    }
-  },
-
   continueAsGuest: () => {
     set({
       user: {
@@ -293,7 +225,6 @@ export const useAppStore = create((set, get) => ({
   },
 
   signOut: async () => {
-    await signOutGoogle();
     try {
       await signOutSupabase();
     } catch {
@@ -447,16 +378,6 @@ export const useAppStore = create((set, get) => ({
       savePersisted(get());
       const updated = nextConversations.find((item) => item.id === conversationId);
       await get().persistConversation(updated);
-
-      if (get().notificationsEnabled && !get().isOnline) {
-        set({
-          lastNotification: {
-            title: 'Edge AI reply ready',
-            body: 'Aura answered on-device because you are offline.',
-            receivedAt: new Date().toISOString(),
-          },
-        });
-      }
     } catch (error) {
       const failed = {
         id: createId('msg'),

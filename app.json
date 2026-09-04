@@ -41,7 +41,6 @@
     },
     "plugins": [
       "expo-document-picker",
-      "expo-web-browser",
       "expo-status-bar",
       [
         "expo-splash-screen",
