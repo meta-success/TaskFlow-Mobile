@@ -1,35 +1,40 @@
 /**
- * Expo auth and push notifications.
+ * Expo auth and notifications.
  *
- * Google Sign-In uses `expo-auth-session` (works in Expo Go).
- * Push uses `expo-notifications` instead of Firebase Messaging.
- * Tokens can still be stored in Supabase `device_tokens`.
+ * Remote push tokens are NOT available in Expo Go (SDK 53+). Calling
+ * getExpoPushTokenAsync / addPushTokenListener throws a red screen there.
+ * All notification native APIs are skipped in Expo Go and loaded lazily
+ * only in a development or production build.
  */
 
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
+import Constants, {ExecutionEnvironment} from 'expo-constants';
 import {Platform} from 'react-native';
 import {ENV, hasGoogleSignInConfig} from '../config/env';
 import {saveDeviceToken} from './supabaseClient';
 
 WebBrowser.maybeCompleteAuthSession();
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+export const isExpoGo =
+  Constants.appOwnership === 'expo' ||
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 const googleDiscovery = {
   authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
   tokenEndpoint: 'https://oauth2.googleapis.com/token',
   revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
+};
+
+const getNotifications = () => {
+  if (isExpoGo) {
+    return null;
+  }
+  try {
+    return require('expo-notifications');
+  } catch {
+    return null;
+  }
 };
 
 export const configureGoogleSignIn = () => {
@@ -101,10 +106,21 @@ export async function signOutGoogle() {
 }
 
 export async function registerPushNotifications(userId) {
+  const Notifications = getNotifications();
+  if (!Notifications) {
+    return null;
+  }
+
   try {
-    if (!Device.isDevice) {
-      return null;
-    }
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
 
     const existing = await Notifications.getPermissionsAsync();
     let status = existing.status;
@@ -139,16 +155,25 @@ export async function registerPushNotifications(userId) {
 }
 
 export const subscribeToForegroundMessages = (handler) => {
-  const sub = Notifications.addNotificationReceivedListener((notification) => {
-    handler({
-      notification: {
-        title: notification.request.content.title,
-        body: notification.request.content.body,
-      },
-      data: notification.request.content.data || {},
+  const Notifications = getNotifications();
+  if (!Notifications) {
+    return () => {};
+  }
+
+  try {
+    const sub = Notifications.addNotificationReceivedListener((notification) => {
+      handler({
+        notification: {
+          title: notification.request.content.title,
+          body: notification.request.content.body,
+        },
+        data: notification.request.content.data || {},
+      });
     });
-  });
-  return () => sub.remove();
+    return () => sub.remove();
+  } catch {
+    return () => {};
+  }
 };
 
 export const describeAiJobNotification = (job) => ({

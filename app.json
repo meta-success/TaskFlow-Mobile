@@ -9,9 +9,9 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/mascot.jpg",
       "resizeMode": "contain",
-      "backgroundColor": "#07050F"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true,
@@ -31,12 +31,6 @@
     },
     "plugins": [
       "expo-document-picker",
-      [
-        "expo-notifications",
-        {
-          "color": "#F3C77A"
-        }
-      ],
       "expo-web-browser",
       "expo-status-bar"
     ]

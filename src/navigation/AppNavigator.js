@@ -66,11 +66,6 @@ function MainTabs() {
 
 export function AppNavigator() {
   const user = useAppStore((state) => state.user);
-  const hydrated = useAppStore((state) => state.hydrated);
-
-  if (!hydrated) {
-    return null;
-  }
 
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
