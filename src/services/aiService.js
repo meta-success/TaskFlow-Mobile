@@ -68,7 +68,7 @@ export async function generateWithOpenAI({
 }) {
   if (!hasOpenAiKey()) {
     throw new Error(
-      'OpenAI API key is missing. Paste it in Settings, or add OPENAI_API_KEY to src/config/env.local.js.',
+      'OpenAI API key is missing. Add EXPO_PUBLIC_OPENAI_API_KEY to your .env file and restart Expo.',
     );
   }
 
@@ -306,7 +306,7 @@ export async function generateChatResponse({
       });
     }
     throw new Error(
-      'No cloud AI provider is configured. Paste your OpenAI key in Settings.',
+      'No cloud AI provider is configured. Add EXPO_PUBLIC_OPENAI_API_KEY to your .env file and restart Expo.',
     );
   } catch (error) {
     const label =

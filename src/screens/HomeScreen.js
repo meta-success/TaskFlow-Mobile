@@ -54,7 +54,7 @@ export function HomeScreen() {
         </Text>
         <Text style={styles.title}>{greeting.split('@')[0]}</Text>
         <Text style={styles.lede}>
-          Your private atelier is ready. OpenAI when you are connected. Edge
+          Your studio is ready. OpenAI when you are connected. Edge
           intelligence when you are not.
         </Text>
 
@@ -70,7 +70,7 @@ export function HomeScreen() {
           </View>
           <View style={styles.pill}>
             <Text style={styles.pillText}>
-              {hasOpenAiKey() ? 'OpenAI key on' : 'Add OpenAI key'}
+              {hasOpenAiKey() ? 'OpenAI ready' : 'No .env key'}
             </Text>
           </View>
         </View>
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(255,255,255,0.16)',
     borderColor: colors.border,
     borderWidth: 1,
     borderRadius: 999,
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   row: {
-    backgroundColor: 'rgba(16,12,28,0.78)',
+    backgroundColor: 'rgba(255,255,255,0.16)',
     borderRadius: 20,
     padding: 14,
     marginBottom: 10,

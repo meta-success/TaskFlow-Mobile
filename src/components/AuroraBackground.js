@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated, StyleSheet, View} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
 import {colors} from '../theme';
 
 export function AuroraBackground() {
@@ -10,12 +11,12 @@ export function AuroraBackground() {
       Animated.sequence([
         Animated.timing(drift, {
           toValue: 1,
-          duration: 9000,
+          duration: 7000,
           useNativeDriver: true,
         }),
         Animated.timing(drift, {
           toValue: 0,
-          duration: 9000,
+          duration: 7000,
           useNativeDriver: true,
         }),
       ]),
@@ -26,56 +27,70 @@ export function AuroraBackground() {
 
   const rise = drift.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -28],
+    outputRange: [0, -36],
   });
   const fall = drift.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 22],
+    outputRange: [0, 28],
+  });
+  const slide = drift.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-16, 20],
   });
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <View style={styles.wash} />
-      <Animated.View style={[styles.orb, styles.purple, {transform: [{translateY: rise}]}]} />
-      <Animated.View style={[styles.orb, styles.gold, {transform: [{translateY: fall}]}]} />
+      <LinearGradient
+        colors={['#6D28D9', '#2563EB', '#1E1B4B']}
+        start={{x: 0.1, y: 0}}
+        end={{x: 0.9, y: 1}}
+        style={StyleSheet.absoluteFill}
+      />
+      <Animated.View
+        style={[styles.orb, styles.magenta, {transform: [{translateY: rise}]}]}
+      />
+      <Animated.View
+        style={[styles.orb, styles.gold, {transform: [{translateY: fall}]}]}
+      />
+      <Animated.View
+        style={[styles.orb, styles.cyan, {transform: [{translateX: slide}]}]}
+      />
       <Animated.View style={[styles.orb, styles.rose]} />
-      <View style={styles.vignette} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wash: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.bg,
-  },
   orb: {
     position: 'absolute',
     borderRadius: 999,
   },
-  purple: {
-    width: 280,
-    height: 280,
-    top: -80,
-    right: -70,
+  magenta: {
+    width: 320,
+    height: 320,
+    top: -90,
+    right: -80,
     backgroundColor: colors.glowPurple,
   },
   gold: {
-    width: 220,
-    height: 220,
-    top: 160,
+    width: 240,
+    height: 240,
+    top: 140,
     left: -90,
     backgroundColor: colors.glowGold,
   },
-  rose: {
-    width: 180,
-    height: 180,
-    bottom: 80,
-    right: -40,
-    backgroundColor: colors.glowRose,
+  cyan: {
+    width: 200,
+    height: 200,
+    bottom: 120,
+    right: -50,
+    backgroundColor: colors.glowCyan,
   },
-  vignette: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7, 5, 15, 0.28)',
+  rose: {
+    width: 170,
+    height: 170,
+    bottom: -30,
+    left: 40,
+    backgroundColor: colors.glowRose,
   },
 });

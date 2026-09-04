@@ -87,10 +87,10 @@ const styles = StyleSheet.create({
   },
   bar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(16, 12, 28, 0.94)',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
     borderRadius: 28,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.45)',
     padding: 6,
   },
   item: {

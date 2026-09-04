@@ -70,11 +70,11 @@ Then:
 
 If PowerShell blocks `npx`, use `npx.cmd expo start` or `npm.cmd start`.
 
-You do **not** need Android Studio Gradle for this path. Guest mode works immediately. Paste your OpenAI key in **Settings**.
+You do **not** need Android Studio Gradle for this path. Guest mode works immediately. Put your OpenAI key in `.env`.
 
 The previous bare React Native `android/` / `ios/` trees were moved to `legacy-native/` so Expo can run as a managed app.
 
-Copy `src/config/env.local.example.js` to `src/config/env.local.js` if you prefer file-based keys. A sample RAG file lives at `assets/sample-knowledge.md`.
+Copy `.env.example` to `.env` and add your keys. Optional file-based fallback: copy `src/config/env.local.example.js` to `src/config/env.local.js`. A sample RAG file lives at `assets/sample-knowledge.md`.
 
 ---
 
@@ -82,8 +82,11 @@ Copy `src/config/env.local.example.js` to `src/config/env.local.js` if you prefe
 
 1. Open [OpenAI API keys](https://platform.openai.com/api-keys).
 2. Create a secret key (`sk-...`). Billing must be enabled on the project.
-3. In the app: **Settings → OpenAI API key**, paste it, and tap **Save**.  
-   Or put it in `src/config/env.local.js` as `OPENAI_API_KEY`.
+3. Put it in the project-root `.env` file:
+
+   `EXPO_PUBLIC_OPENAI_API_KEY=sk-your-key`
+
+   `.env` is gitignored. Restart Expo after you change it (`npm.cmd start -- --clear`).
 4. Pick a model in Settings: `gpt-4o-mini` (default), `gpt-4o`, `gpt-4.1-mini`, or `gpt-4.1`.
 
 Chat uses `/v1/chat/completions`. RAG embeddings use `text-embedding-3-small`.
@@ -95,7 +98,7 @@ Chat uses `/v1/chat/completions`. RAG embeddings use `text-embedding-3-small`.
 1. Open [Google AI Studio](https://aistudio.google.com/apikey).
 2. Sign in with a Google account and create an API key.
 3. Enable the Generative Language API if the console asks you to.
-4. Paste the key into `src/config/env.local.js` as `GEMINI_API_KEY`.
+4. Paste the key into `.env` as `EXPO_PUBLIC_GEMINI_API_KEY`.
 
 Useful models in Settings: `gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro`. Embeddings use `text-embedding-004`.
 
@@ -106,7 +109,7 @@ Useful models in Settings: `gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-p
 1. Create an account at [OpenRouter](https://openrouter.ai/).
 2. Open [Keys](https://openrouter.ai/keys) and generate a key.
 3. Add credits or attach a provider key if your account requires it.
-4. Paste the key into `src/config/env.local.js` as `OPENROUTER_API_KEY`.
+4. Paste the key into `.env` as `EXPO_PUBLIC_OPENROUTER_API_KEY`.
 5. Optionally set `OPENROUTER_SITE_URL` and `OPENROUTER_APP_NAME` — OpenRouter uses those headers for attribution.
 
 Aura calls `https://openrouter.ai/api/v1/chat/completions` with `fetch`. Switch models in Settings (`openai/gpt-4o-mini`, Claude, Llama, Gemini via OpenRouter).

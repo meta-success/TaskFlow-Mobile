@@ -71,9 +71,10 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Secrets
+# Secrets — never commit API keys
 src/config/env.local.js
 .env
+.env.local
 .env.*
 !.env.example
 android/app/google-services.json

@@ -1,47 +1,48 @@
 /**
- * Aura visual system — midnight canvas, orchid light, and champagne gold.
+ * Aura visual system — luminous twilight, orchid light, and bright gold.
  */
 export const colors = {
-  bg: '#07050F',
-  bgElevated: '#100C1C',
-  bgCard: 'rgba(28, 20, 48, 0.78)',
-  bgInput: 'rgba(18, 14, 32, 0.92)',
-  border: 'rgba(243, 199, 122, 0.18)',
-  borderStrong: 'rgba(232, 214, 255, 0.16)',
-  text: '#F7F1FF',
-  textMuted: '#C9B8E4',
-  textDim: '#8B7BA6',
-  primary: '#C084FC',
-  primaryDeep: '#7C3AED',
-  primarySoft: 'rgba(192, 132, 252, 0.16)',
-  accent: '#F3C77A',
-  accentSoft: 'rgba(243, 199, 122, 0.14)',
-  rose: '#FF8BA7',
+  bg: '#16083A',
+  bgElevated: '#2A1460',
+  bgCard: 'rgba(255, 255, 255, 0.16)',
+  bgInput: 'rgba(255, 255, 255, 0.22)',
+  border: 'rgba(255, 236, 170, 0.45)',
+  borderStrong: 'rgba(255, 255, 255, 0.42)',
+  text: '#FFFFFF',
+  textMuted: '#F0E4FF',
+  textDim: '#D7C6F5',
+  primary: '#E879F9',
+  primaryDeep: '#C026D3',
+  primarySoft: 'rgba(232, 121, 249, 0.28)',
+  accent: '#FFD54A',
+  accentSoft: 'rgba(255, 213, 74, 0.28)',
+  rose: '#FF8EC8',
   danger: '#FF6B8A',
-  warning: '#F5C16C',
-  userBubble: '#7C3AED',
-  assistantBubble: 'rgba(22, 16, 40, 0.92)',
-  online: '#7EE0B8',
+  warning: '#FFD54A',
+  userBubble: '#A855F7',
+  assistantBubble: 'rgba(255, 255, 255, 0.14)',
+  online: '#5CFFC8',
   offline: '#FF8A5B',
-  glowPurple: 'rgba(124, 58, 237, 0.38)',
-  glowGold: 'rgba(243, 199, 122, 0.22)',
-  glowRose: 'rgba(255, 139, 167, 0.18)',
+  glowPurple: 'rgba(192, 38, 211, 0.55)',
+  glowGold: 'rgba(255, 213, 74, 0.42)',
+  glowRose: 'rgba(255, 142, 200, 0.38)',
+  glowCyan: 'rgba(56, 189, 248, 0.42)',
 };
 
 export const shadows = {
   card: {
-    shadowColor: '#C084FC',
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
-    shadowOffset: {width: 0, height: 10},
-    elevation: 8,
+    shadowColor: '#E879F9',
+    shadowOpacity: 0.35,
+    shadowRadius: 24,
+    shadowOffset: {width: 0, height: 12},
+    elevation: 10,
   },
   gold: {
-    shadowColor: '#F3C77A',
-    shadowOpacity: 0.28,
-    shadowRadius: 16,
+    shadowColor: '#FFD54A',
+    shadowOpacity: 0.55,
+    shadowRadius: 18,
     shadowOffset: {width: 0, height: 8},
-    elevation: 6,
+    elevation: 8,
   },
 };
 
@@ -62,7 +63,7 @@ export const radius = {
 
 export const typography = {
   display: {
-    fontSize: 34,
+    fontSize: 36,
     fontWeight: '800',
     letterSpacing: -0.8,
     color: colors.text,
@@ -85,9 +86,9 @@ export const typography = {
   },
   caption: {
     fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: colors.textDim,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    color: colors.accent,
     textTransform: 'uppercase',
   },
 };

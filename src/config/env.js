@@ -1,8 +1,9 @@
 /**
  * Runtime configuration for Aura AI.
  *
- * Preferred path for this build: paste an OpenAI key in Settings,
- * or set OPENAI_API_KEY in env.local.js.
+ * Put secrets in a project-root `.env` file (gitignored).
+ * Expo exposes only keys that start with EXPO_PUBLIC_.
+ * Optional fallback: src/config/env.local.js
  */
 
 let local = {};
@@ -21,34 +22,48 @@ const trim = (value, fallback = '') => {
   return next.length ? next : fallback;
 };
 
-const runtime = {
-  OPENAI_API_KEY: '',
-};
-
-export const setRuntimeConfig = (partial = {}) => {
-  Object.assign(runtime, partial);
-};
+const fromPublic = (name, localKey, fallback = '') =>
+  trim(process.env[name]) || trim(local[localKey], fallback);
 
 export const ENV = {
-  OPENAI_API_KEY: trim(local.OPENAI_API_KEY),
-  GEMINI_API_KEY: trim(local.GEMINI_API_KEY),
-  OPENROUTER_API_KEY: trim(local.OPENROUTER_API_KEY),
-  OPENROUTER_SITE_URL: trim(
-    local.OPENROUTER_SITE_URL,
+  OPENAI_API_KEY: fromPublic('EXPO_PUBLIC_OPENAI_API_KEY', 'OPENAI_API_KEY'),
+  GEMINI_API_KEY: fromPublic('EXPO_PUBLIC_GEMINI_API_KEY', 'GEMINI_API_KEY'),
+  OPENROUTER_API_KEY: fromPublic(
+    'EXPO_PUBLIC_OPENROUTER_API_KEY',
+    'OPENROUTER_API_KEY',
+  ),
+  OPENROUTER_SITE_URL: fromPublic(
+    'EXPO_PUBLIC_OPENROUTER_SITE_URL',
+    'OPENROUTER_SITE_URL',
     'https://github.com/aura-ai-mobile',
   ),
-  OPENROUTER_APP_NAME: trim(local.OPENROUTER_APP_NAME, 'Aura AI Mobile'),
+  OPENROUTER_APP_NAME: fromPublic(
+    'EXPO_PUBLIC_OPENROUTER_APP_NAME',
+    'OPENROUTER_APP_NAME',
+    'Aura AI Mobile',
+  ),
 
-  SUPABASE_URL: trim(local.SUPABASE_URL),
-  SUPABASE_ANON_KEY: trim(local.SUPABASE_ANON_KEY),
+  SUPABASE_URL: fromPublic('EXPO_PUBLIC_SUPABASE_URL', 'SUPABASE_URL'),
+  SUPABASE_ANON_KEY: fromPublic(
+    'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+    'SUPABASE_ANON_KEY',
+  ),
 
-  FIREBASE_ENABLED: Boolean(local.FIREBASE_ENABLED),
-  GOOGLE_WEB_CLIENT_ID: trim(local.GOOGLE_WEB_CLIENT_ID),
-  GOOGLE_IOS_CLIENT_ID: trim(local.GOOGLE_IOS_CLIENT_ID),
+  FIREBASE_ENABLED: Boolean(
+    trim(process.env.EXPO_PUBLIC_FIREBASE_ENABLED) === 'true' ||
+      local.FIREBASE_ENABLED,
+  ),
+  GOOGLE_WEB_CLIENT_ID: fromPublic(
+    'EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID',
+    'GOOGLE_WEB_CLIENT_ID',
+  ),
+  GOOGLE_IOS_CLIENT_ID: fromPublic(
+    'EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID',
+    'GOOGLE_IOS_CLIENT_ID',
+  ),
 };
 
-export const getOpenAiKey = () =>
-  trim(runtime.OPENAI_API_KEY) || ENV.OPENAI_API_KEY;
+export const getOpenAiKey = () => ENV.OPENAI_API_KEY;
 
 export const hasOpenAiKey = () => Boolean(getOpenAiKey());
 export const hasGeminiKey = () => Boolean(ENV.GEMINI_API_KEY);

@@ -56,29 +56,29 @@ export function AuthScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
             <View style={styles.hero}>
-              <AuraLogo size={148} />
-              <Text style={styles.kicker}>Private studio</Text>
-              <Text style={styles.title}>Aura</Text>
+              <AuraLogo size={168} />
+              <Text style={styles.kicker}>Welcome to Aura</Text>
+              <Text style={styles.title}>Aura AI</Text>
               <Text style={styles.subtitle}>
-                Chat with OpenAI, run Edge AI offline, and ground answers in
+                Bright chats, Edge AI on your phone, and answers grounded in
                 your documents.
               </Text>
             </View>
 
             <GlassCard glow style={styles.card}>
               <Text style={styles.cardTitle}>
-                {mode === 'signin' ? 'Enter the studio' : 'Create your atelier'}
+                {mode === 'signin' ? 'Let’s begin' : 'Create your studio'}
               </Text>
 
               <View style={styles.field}>
-                <Ionicons name="mail-outline" size={18} color={colors.textDim} />
+                <Ionicons name="mail-outline" size={18} color={colors.accent} />
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   placeholder="Email"
-                  placeholderTextColor={colors.textDim}
+                  placeholderTextColor="rgba(255,255,255,0.55)"
                   style={styles.input}
                 />
               </View>
@@ -86,14 +86,14 @@ export function AuthScreen() {
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color={colors.textDim}
+                  color={colors.accent}
                 />
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
                   placeholder="Password"
-                  placeholderTextColor={colors.textDim}
+                  placeholderTextColor="rgba(255,255,255,0.55)"
                   style={styles.input}
                 />
               </View>
@@ -128,19 +128,15 @@ export function AuthScreen() {
                   onPress={signInWithGoogle}
                   loading={authLoading}
                   disabled={!hasGoogleSignInConfig()}
-                  iconColor="#E8F1FF"
+                  iconColor="#FFFFFF"
                 />
                 <PrimaryButton
-                  icon="sparkles-outline"
+                  icon="sparkles"
                   label="Wander as guest"
                   variant="ghost"
                   onPress={continueAsGuest}
                 />
               </View>
-              <Text style={styles.hint}>
-                Paste your OpenAI key in Settings after you enter. Guest mode
-                keeps chats on this device.
-              </Text>
             </GlassCard>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -159,74 +155,74 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 8,
     paddingBottom: 28,
   },
   hero: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   kicker: {
     ...typography.caption,
     color: colors.accent,
-    marginTop: 2,
+    marginTop: 10,
   },
   title: {
     ...typography.display,
-    fontSize: 32,
+    fontSize: 40,
     marginTop: 2,
+    textShadowColor: 'rgba(255, 213, 74, 0.55)',
+    textShadowOffset: {width: 0, height: 0},
+    textShadowRadius: 16,
   },
   subtitle: {
     ...typography.subtitle,
-    lineHeight: 20,
+    color: colors.textMuted,
+    lineHeight: 22,
     textAlign: 'center',
-    marginTop: 6,
-    paddingHorizontal: 12,
+    marginTop: 8,
+    paddingHorizontal: 8,
+    fontSize: 16,
   },
   card: {
-    padding: 14,
+    padding: 0,
   },
   cardTitle: {
     color: colors.text,
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: '800',
+    marginBottom: 10,
   },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     backgroundColor: colors.bgInput,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    minHeight: 44,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginTop: 8,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    minHeight: 50,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.4)',
+    marginTop: 10,
   },
   input: {
     flex: 1,
     color: colors.text,
-    fontSize: 15,
-    paddingVertical: 8,
+    fontSize: 16,
+    paddingVertical: 10,
   },
   actions: {
-    marginTop: 12,
-    gap: 8,
+    marginTop: 14,
+    gap: 10,
   },
   error: {
     color: colors.danger,
-    fontWeight: '600',
-    marginTop: 8,
+    fontWeight: '700',
+    marginTop: 10,
   },
   notice: {
     color: colors.accent,
-    marginTop: 8,
-  },
-  hint: {
-    color: colors.textDim,
-    fontSize: 11,
-    lineHeight: 16,
     marginTop: 10,
+    fontWeight: '600',
   },
 });

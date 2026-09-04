@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {Pressable, StyleSheet, Switch, Text, TextInput, View} from 'react-native';
+import React from 'react';
+import {Pressable, StyleSheet, Switch, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {PrimaryButton} from '../components/PrimaryButton';
 import {Screen} from '../components/Screen';
@@ -42,13 +42,11 @@ function ChoiceRow({selected, title, hint, onPress}) {
 export function SettingsScreen() {
   const provider = useAppStore((state) => state.provider);
   const openaiModel = useAppStore((state) => state.openaiModel);
-  const openaiApiKey = useAppStore((state) => state.openaiApiKey);
   const geminiModel = useAppStore((state) => state.geminiModel);
   const openrouterModel = useAppStore((state) => state.openrouterModel);
   const notificationsEnabled = useAppStore((state) => state.notificationsEnabled);
   const setProvider = useAppStore((state) => state.setProvider);
   const setOpenAiModel = useAppStore((state) => state.setOpenAiModel);
-  const setOpenAiApiKey = useAppStore((state) => state.setOpenAiApiKey);
   const setGeminiModel = useAppStore((state) => state.setGeminiModel);
   const setOpenrouterModel = useAppStore((state) => state.setOpenrouterModel);
   const setNotificationsEnabled = useAppStore(
@@ -57,37 +55,21 @@ export function SettingsScreen() {
   const signOut = useAppStore((state) => state.signOut);
   const user = useAppStore((state) => state.user);
   const lastNotification = useAppStore((state) => state.lastNotification);
-  const [draftKey, setDraftKey] = useState(openaiApiKey || '');
 
   return (
     <Screen scroll>
       <SafeAreaView edges={['top']}>
-        <Text style={styles.kicker}>Atelier</Text>
+        <Text style={styles.kicker}>Studio</Text>
         <Text style={styles.title}>Settings</Text>
         <Text style={styles.body}>
-          Signed in as {user?.email || 'local session'}. Aura prefers your OpenAI
-          key. Paste it below — it stays on this device.
+          Signed in as {user?.email || 'local session'}. Add keys in your .env
+          file (EXPO_PUBLIC_…). Restart Expo after you change them.
         </Text>
 
         <GlassCard style={styles.block}>
-          <Text style={styles.section}>OpenAI API key</Text>
-          <TextInput
-            value={draftKey}
-            onChangeText={setDraftKey}
-            autoCapitalize="none"
-            autoCorrect={false}
-            secureTextEntry
-            placeholder="sk-..."
-            placeholderTextColor={colors.textDim}
-            style={styles.input}
-          />
-          <PrimaryButton
-            label={hasOpenAiKey() ? 'Update key' : 'Save OpenAI key'}
-            onPress={() => setOpenAiApiKey(draftKey)}
-            disabled={!draftKey.trim()}
-          />
+          <Text style={styles.sectionTop}>OpenAI</Text>
           <Text style={styles.kv}>
-            Active key: {hasOpenAiKey() ? maskSecret(getOpenAiKey()) : 'Not set'}
+            Key: {hasOpenAiKey() ? maskSecret(getOpenAiKey()) : 'Add EXPO_PUBLIC_OPENAI_API_KEY to .env'}
           </Text>
         </GlassCard>
 
@@ -212,18 +194,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
   },
-  input: {
-    backgroundColor: colors.bgInput,
-    color: colors.text,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    minHeight: 52,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
   choice: {
-    backgroundColor: 'rgba(16,12,28,0.78)',
-    borderColor: colors.borderStrong,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderColor: 'rgba(255,255,255,0.28)',
     borderWidth: 1,
     borderRadius: 16,
     padding: 13,
@@ -264,7 +237,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: 'rgba(16,12,28,0.78)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,

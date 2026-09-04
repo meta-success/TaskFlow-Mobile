@@ -1,4 +1,5 @@
 /**
+ * Optional JS fallback if you do not use a root `.env` file.
  * Copy this file to env.local.js and replace the placeholder values.
  * Never commit env.local.js.
  */

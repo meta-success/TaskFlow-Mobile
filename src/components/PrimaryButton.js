@@ -1,7 +1,8 @@
 import React from 'react';
 import {ActivityIndicator, Pressable, StyleSheet, Text, View} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
-import {colors, radius, shadows} from '../theme';
+import {colors, shadows} from '../theme';
 
 export function PrimaryButton({
   label,
@@ -12,16 +13,27 @@ export function PrimaryButton({
   icon,
   iconColor,
 }) {
+  const isPrimary = variant === 'primary';
   const palette =
     variant === 'ghost'
       ? styles.ghost
       : variant === 'danger'
         ? styles.danger
-        : styles.primary;
-  const labelStyle =
-    variant === 'primary' ? styles.labelDark : styles.label;
+        : styles.primaryFill;
+  const labelStyle = isPrimary ? styles.labelDark : styles.label;
   const resolvedIconColor =
-    iconColor || (variant === 'primary' ? '#2A1B08' : colors.text);
+    iconColor || (isPrimary ? '#3B2200' : '#FFFFFF');
+
+  const inner = loading ? (
+    <ActivityIndicator color={isPrimary ? '#3B2200' : colors.text} />
+  ) : (
+    <View style={styles.row}>
+      {icon ? (
+        <Ionicons name={icon} size={18} color={resolvedIconColor} />
+      ) : null}
+      <Text style={labelStyle}>{label}</Text>
+    </View>
+  );
 
   return (
     <Pressable
@@ -29,22 +41,21 @@ export function PrimaryButton({
       disabled={disabled || loading}
       style={({pressed}) => [
         styles.base,
-        palette,
-        variant === 'primary' && shadows.gold,
+        !isPrimary && palette,
+        isPrimary && shadows.gold,
         pressed && styles.pressed,
         (disabled || loading) && styles.disabled,
       ]}>
-      {loading ? (
-        <ActivityIndicator
-          color={variant === 'primary' ? '#2A1B08' : colors.text}
-        />
+      {isPrimary ? (
+        <LinearGradient
+          colors={['#FFE27A', '#FFD54A', '#FFB703']}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 1}}
+          style={styles.gradient}>
+          {inner}
+        </LinearGradient>
       ) : (
-        <View style={styles.row}>
-          {icon ? (
-            <Ionicons name={icon} size={18} color={resolvedIconColor} />
-          ) : null}
-          <Text style={labelStyle}>{label}</Text>
-        </View>
+        inner
       )}
     </Pressable>
   );
@@ -52,8 +63,15 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 44,
-    borderRadius: 14,
+    minHeight: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  gradient: {
+    minHeight: 48,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 14,
@@ -64,21 +82,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  primary: {
+  primaryFill: {
     backgroundColor: colors.accent,
   },
   ghost: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.55)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   danger: {
-    backgroundColor: 'rgba(255, 107, 138, 0.16)',
+    backgroundColor: 'rgba(255, 107, 138, 0.2)',
     borderWidth: 1,
     borderColor: colors.danger,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.92,
     transform: [{scale: 0.985}],
   },
   disabled: {
@@ -86,12 +108,12 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.text,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
   },
   labelDark: {
-    color: '#2A1B08',
-    fontSize: 14,
+    color: '#3B2200',
+    fontSize: 15,
     fontWeight: '800',
   },
 });

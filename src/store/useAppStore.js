@@ -8,7 +8,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import {createId} from '../utils/id';
 import {titleFromPrompt} from '../utils/format';
-import {setRuntimeConfig} from '../config/env';
 import {generateChatResponse} from '../services/aiService';
 import {
   analyzeSentiment,
@@ -49,7 +48,6 @@ const isCloudUser = (userId) =>
 const persistable = (state) => ({
   provider: state.provider,
   openaiModel: state.openaiModel,
-  openaiApiKey: state.openaiApiKey,
   geminiModel: state.geminiModel,
   openrouterModel: state.openrouterModel,
   notificationsEnabled: state.notificationsEnabled,
@@ -97,7 +95,6 @@ export const useAppStore = create((set, get) => ({
 
   provider: 'openai',
   openaiModel: 'gpt-4o-mini',
-  openaiApiKey: '',
   geminiModel: 'gemini-2.0-flash',
   openrouterModel: 'openai/gpt-4o-mini',
   notificationsEnabled: true,
@@ -120,12 +117,6 @@ export const useAppStore = create((set, get) => ({
     set({openaiModel});
     savePersisted(get());
   },
-  setOpenAiApiKey: (openaiApiKey) => {
-    const next = String(openaiApiKey || '').trim();
-    setRuntimeConfig({OPENAI_API_KEY: next});
-    set({openaiApiKey: next});
-    savePersisted(get());
-  },
   setGeminiModel: (geminiModel) => {
     set({geminiModel});
     savePersisted(get());
@@ -146,7 +137,6 @@ export const useAppStore = create((set, get) => ({
           user_metadata: {full_name: 'Guest'},
         }
       : null;
-    setRuntimeConfig({OPENAI_API_KEY: cached.openaiApiKey || ''});
     set({
       ...cached,
       openaiModel: cached.openaiModel || 'gpt-4o-mini',
