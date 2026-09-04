@@ -1,13 +1,16 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {AuraLogo} from './AuraLogo';
+import {AuraWordmark} from './AuraWordmark';
 import {colors} from '../theme';
 
 export function BootScreen() {
   return (
     <View style={styles.root}>
       <AuraLogo size={220} />
-      <Text style={styles.title}>Aura AI</Text>
+      <View style={styles.wordmark}>
+        <AuraWordmark size="lg" />
+      </View>
       <Text style={styles.subtitle}>Waking the atelier…</Text>
     </View>
   );
@@ -21,12 +24,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
-  title: {
-    marginTop: 22,
-    color: colors.text,
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.4,
+  wordmark: {
+    marginTop: 18,
   },
   subtitle: {
     marginTop: 6,

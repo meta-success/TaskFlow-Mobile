@@ -14,8 +14,9 @@ import {Ionicons} from '@expo/vector-icons';
 import {PrimaryButton} from '../components/PrimaryButton';
 import {AuroraBackground} from '../components/AuroraBackground';
 import {AuraLogo} from '../components/AuraLogo';
+import {AuraWordmark} from '../components/AuraWordmark';
 import {useAppStore} from '../store/useAppStore';
-import {colors, typography} from '../theme';
+import {colors} from '../theme';
 import {hasSupabaseConfig} from '../config/env';
 
 export function AuthScreen() {
@@ -56,7 +57,9 @@ export function AuthScreen() {
             showsVerticalScrollIndicator={false}>
             <View style={styles.hero}>
               <AuraLogo size={128} />
-              <Text style={styles.title}>Aura AI</Text>
+              <View style={styles.wordmark}>
+                <AuraWordmark size="lg" />
+              </View>
               <Text style={styles.subtitle}>Chat, documents, and on-device AI.</Text>
             </View>
 
@@ -146,13 +149,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  title: {
-    ...typography.display,
-    fontSize: 36,
-    marginTop: 10,
-    textShadowColor: 'rgba(255, 213, 74, 0.45)',
-    textShadowOffset: {width: 0, height: 0},
-    textShadowRadius: 14,
+  wordmark: {
+    marginTop: 12,
   },
   subtitle: {
     color: colors.textMuted,
