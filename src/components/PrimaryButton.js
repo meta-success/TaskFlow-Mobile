@@ -1,5 +1,6 @@
 import React from 'react';
-import {ActivityIndicator, Pressable, StyleSheet, Text} from 'react-native';
+import {ActivityIndicator, Pressable, StyleSheet, Text, View} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
 import {colors, radius, shadows} from '../theme';
 
 export function PrimaryButton({
@@ -8,6 +9,8 @@ export function PrimaryButton({
   loading = false,
   disabled = false,
   variant = 'primary',
+  icon,
+  iconColor,
 }) {
   const palette =
     variant === 'ghost'
@@ -17,6 +20,8 @@ export function PrimaryButton({
         : styles.primary;
   const labelStyle =
     variant === 'primary' ? styles.labelDark : styles.label;
+  const resolvedIconColor =
+    iconColor || (variant === 'primary' ? '#2A1B08' : colors.text);
 
   return (
     <Pressable
@@ -30,9 +35,16 @@ export function PrimaryButton({
         (disabled || loading) && styles.disabled,
       ]}>
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.bg : colors.text} />
+        <ActivityIndicator
+          color={variant === 'primary' ? '#2A1B08' : colors.text}
+        />
       ) : (
-        <Text style={labelStyle}>{label}</Text>
+        <View style={styles.row}>
+          {icon ? (
+            <Ionicons name={icon} size={18} color={resolvedIconColor} />
+          ) : null}
+          <Text style={labelStyle}>{label}</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -40,11 +52,17 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 54,
-    borderRadius: radius.md,
+    minHeight: 44,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   primary: {
     backgroundColor: colors.accent,
@@ -68,12 +86,12 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.text,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
   },
   labelDark: {
     color: '#2A1B08',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
   },
 });
