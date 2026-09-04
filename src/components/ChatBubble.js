@@ -1,5 +1,6 @@
 import React from 'react';
 import {Image, StyleSheet, Text, View} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
 import {colors, radius} from '../theme';
 import {formatTime} from '../utils/format';
 
@@ -7,7 +8,7 @@ const mascot = require('../../assets/mascot.jpg');
 
 function AuraAvatar() {
   return (
-    <View style={styles.avatar}>
+    <View style={styles.avatarRing}>
       <Image source={mascot} style={styles.avatarImage} />
     </View>
   );
@@ -17,26 +18,39 @@ export function ChatBubble({message}) {
   const isUser = message.role === 'user';
   const isError = Boolean(message.error);
 
+  const body = (
+    <>
+      <Text style={styles.text}>{message.content}</Text>
+      <Text style={[styles.time, isUser && styles.timeUser]}>
+        {formatTime(message.createdAt)}
+      </Text>
+      {message.citations?.length ? (
+        <View style={styles.citePill}>
+          <Text style={styles.cite}>
+            Grounded · {message.citations.length} source
+            {message.citations.length > 1 ? 's' : ''}
+          </Text>
+        </View>
+      ) : null}
+    </>
+  );
+
   return (
     <View style={[styles.row, isUser ? styles.rowUser : styles.rowAssistant]}>
       {!isUser ? <AuraAvatar /> : null}
-      <View
-        style={[
-          styles.bubble,
-          isUser ? styles.user : styles.assistant,
-          isError && styles.error,
-        ]}>
-        <Text style={styles.text}>{message.content}</Text>
-        <Text style={styles.time}>{formatTime(message.createdAt)}</Text>
-        {message.citations?.length ? (
-          <View style={styles.citePill}>
-            <Text style={styles.cite}>
-              Grounded · {message.citations.length} source
-              {message.citations.length > 1 ? 's' : ''}
-            </Text>
-          </View>
-        ) : null}
-      </View>
+      {isUser ? (
+        <LinearGradient
+          colors={['#C084FC', '#A855F7', '#7C3AED']}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 1}}
+          style={[styles.bubble, styles.user, isError && styles.error]}>
+          {body}
+        </LinearGradient>
+      ) : (
+        <View style={[styles.bubble, styles.assistant, isError && styles.error]}>
+          {body}
+        </View>
+      )}
     </View>
   );
 }
@@ -54,7 +68,7 @@ export function TypingDots() {
 
 const styles = StyleSheet.create({
   row: {
-    marginBottom: 14,
+    marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
@@ -64,48 +78,51 @@ const styles = StyleSheet.create({
   rowAssistant: {
     justifyContent: 'flex-start',
   },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 8,
+  avatarRing: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
     overflow: 'hidden',
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: colors.accent,
     backgroundColor: '#1E1B4B',
   },
   avatarImage: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
   },
   bubble: {
-    maxWidth: '82%',
-    borderRadius: radius.lg,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    maxWidth: '78%',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
   },
   user: {
-    backgroundColor: colors.userBubble,
-    borderBottomRightRadius: 8,
+    borderBottomRightRadius: 6,
   },
   assistant: {
-    backgroundColor: colors.assistantBubble,
-    borderBottomLeftRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderBottomLeftRadius: 6,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
+    borderColor: 'rgba(255,255,255,0.28)',
   },
   error: {
+    borderWidth: 1,
     borderColor: colors.danger,
   },
   text: {
     color: colors.text,
     fontSize: 15,
-    lineHeight: 23,
+    lineHeight: 22,
   },
   time: {
-    color: 'rgba(247,241,255,0.55)',
+    color: 'rgba(255,255,255,0.55)',
     fontSize: 11,
-    marginTop: 8,
+    marginTop: 6,
+  },
+  timeUser: {
+    color: 'rgba(255,255,255,0.72)',
   },
   citePill: {
     marginTop: 8,

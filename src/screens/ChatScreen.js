@@ -112,10 +112,12 @@ const styles = StyleSheet.create({
   },
   toolbar: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.12)',
   },
   title: {
     color: colors.text,

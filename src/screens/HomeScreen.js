@@ -3,6 +3,7 @@ import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Ionicons} from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
 import {Screen} from '../components/Screen';
 import {useAppStore} from '../store/useAppStore';
 import {colors, typography} from '../theme';
@@ -67,9 +68,15 @@ export function HomeScreen() {
           />
         </View>
 
-        <Pressable style={styles.cta} onPress={startChat}>
-          <Ionicons name="chatbubble-ellipses" size={20} color="#3B2200" />
-          <Text style={styles.ctaText}>New chat</Text>
+        <Pressable onPress={startChat}>
+          <LinearGradient
+            colors={['#FFE27A', '#FFD54A', '#FFB703']}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
+            style={styles.cta}>
+            <Ionicons name="chatbubble-ellipses" size={20} color="#3B2200" />
+            <Text style={styles.ctaText}>New chat</Text>
+          </LinearGradient>
         </Pressable>
 
         <View style={styles.actions}>
@@ -186,7 +193,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
     minHeight: 48,
     borderRadius: 16,
-    backgroundColor: colors.accent,
+    overflow: 'hidden',
+    shadowColor: '#FFD54A',
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: {width: 0, height: 4},
+    elevation: 5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

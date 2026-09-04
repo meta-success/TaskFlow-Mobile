@@ -3,6 +3,7 @@ import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {HomeScreen} from '../screens/HomeScreen';
 import {ChatScreen} from '../screens/ChatScreen';
@@ -27,7 +28,11 @@ function AuraTabBar({state, navigation}) {
 
   return (
     <View style={[styles.dock, {paddingBottom: Math.max(insets.bottom, 10)}]}>
-      <View style={styles.bar}>
+      <LinearGradient
+        colors={['rgba(40, 18, 90, 0.94)', 'rgba(18, 8, 48, 0.96)']}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
+        style={styles.bar}>
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const meta = TABS.find((item) => item.key === route.name);
@@ -49,7 +54,7 @@ function AuraTabBar({state, navigation}) {
             </Pressable>
           );
         })}
-      </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -89,21 +94,21 @@ const styles = StyleSheet.create({
   },
   bar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(18, 8, 48, 0.88)',
-    borderRadius: 22,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
-    padding: 4,
+    borderColor: 'rgba(255,255,255,0.32)',
+    padding: 5,
+    overflow: 'hidden',
   },
   item: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderRadius: 18,
-    gap: 2,
+    gap: 3,
   },
   itemOn: {
-    backgroundColor: 'rgba(255, 213, 74, 0.18)',
+    backgroundColor: 'rgba(255, 213, 74, 0.22)',
   },
   caption: {
     color: 'rgba(255,255,255,0.7)',
