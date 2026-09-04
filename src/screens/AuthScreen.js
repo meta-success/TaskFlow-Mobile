@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,11 +13,10 @@ import {Ionicons} from '@expo/vector-icons';
 import {PrimaryButton} from '../components/PrimaryButton';
 import {GlassCard} from '../components/GlassCard';
 import {AuroraBackground} from '../components/AuroraBackground';
+import {AuraLogo} from '../components/AuraLogo';
 import {useAppStore} from '../store/useAppStore';
 import {colors, typography} from '../theme';
 import {hasGoogleSignInConfig, hasSupabaseConfig} from '../config/env';
-
-const mascot = require('../../assets/mascot.jpg');
 
 export function AuthScreen() {
   const [mode, setMode] = useState('signin');
@@ -58,7 +56,7 @@ export function AuthScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
             <View style={styles.hero}>
-              <Image source={mascot} style={styles.mascot} resizeMode="contain" />
+              <AuraLogo size={148} />
               <Text style={styles.kicker}>Private studio</Text>
               <Text style={styles.title}>Aura</Text>
               <Text style={styles.subtitle}>
@@ -167,11 +165,6 @@ const styles = StyleSheet.create({
   hero: {
     alignItems: 'center',
     marginBottom: 16,
-  },
-  mascot: {
-    width: 168,
-    height: 168,
-    marginBottom: 4,
   },
   kicker: {
     ...typography.caption,

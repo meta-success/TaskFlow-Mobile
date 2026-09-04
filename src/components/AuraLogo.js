@@ -1,45 +1,113 @@
-import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {colors, shadows} from '../theme';
+import React, {useEffect, useRef} from 'react';
+import {Animated, Image, StyleSheet, View} from 'react-native';
 
-export function AuraLogo({size = 72}) {
+const mascot = require('../../assets/mascot.jpg');
+
+/**
+ * Brand mark: mascot clipped in a circle, wrapped in a gold core
+ * and a lavender ring with a soft pulse.
+ */
+export function AuraLogo({size = 160}) {
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 1400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 1400,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  const glowScale = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.08],
+  });
+  const glowOpacity = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.28, 0.62],
+  });
+
+  const ring = size;
+  const inner = size * 0.78;
+  const core = size * 0.64;
+
   return (
-    <View
-      style={[
-        styles.wrap,
-        shadows.gold,
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 2.4,
-        },
-      ]}>
-      <View style={[styles.ring, {borderRadius: size / 2.6}]} />
-      <Text style={[styles.mark, {fontSize: size * 0.36}]}>A</Text>
+    <View style={{width: ring, height: ring, alignItems: 'center', justifyContent: 'center'}}>
+      <Animated.View
+        style={[
+          styles.glow,
+          {
+            width: ring,
+            height: ring,
+            borderRadius: ring / 2,
+            opacity: glowOpacity,
+            transform: [{scale: glowScale}],
+          },
+        ]}
+      />
+      <View
+        style={[
+          styles.lavender,
+          {
+            width: ring,
+            height: ring,
+            borderRadius: ring / 2,
+          },
+        ]}
+      />
+      <View
+        style={[
+          styles.gold,
+          {
+            width: inner,
+            height: inner,
+            borderRadius: inner / 2,
+          },
+        ]}
+      />
+      <View
+        style={[
+          styles.core,
+          {
+            width: core,
+            height: core,
+            borderRadius: core / 2,
+          },
+        ]}>
+        <Image source={mascot} style={{width: core, height: core}} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    backgroundColor: 'rgba(124, 58, 237, 0.35)',
-    borderWidth: 1,
-    borderColor: colors.accent,
+  glow: {
+    position: 'absolute',
+    backgroundColor: 'rgba(192, 132, 252, 0.45)',
+  },
+  lavender: {
+    position: 'absolute',
+    backgroundColor: '#B9A4E8',
+  },
+  gold: {
+    position: 'absolute',
+    backgroundColor: '#F3C77A',
+  },
+  core: {
+    overflow: 'hidden',
+    backgroundColor: '#000',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  ring: {
-    position: 'absolute',
-    width: '62%',
-    height: '62%',
-    backgroundColor: 'rgba(243, 199, 122, 0.18)',
-    top: '30%',
-    left: '28%',
-  },
-  mark: {
-    color: colors.text,
-    fontWeight: '800',
-    letterSpacing: -0.5,
   },
 });
