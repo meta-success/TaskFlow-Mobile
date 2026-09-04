@@ -147,17 +147,28 @@ export async function readPickedFile(file) {
 }
 
 export async function pickAndIngestDocument(isOnline) {
-  const DocumentPicker = require('react-native-document-picker').default;
-  const file = await DocumentPicker.pickSingle({
-    type: [
-      DocumentPicker.types.plainText,
-      DocumentPicker.types.json,
-      'text/markdown',
-      'text/*',
-    ],
-    copyTo: 'cachesDirectory',
+  const DocumentPicker = require('expo-document-picker');
+  const result = await DocumentPicker.getDocumentAsync({
+    type: ['text/plain', 'text/markdown', 'application/json', '*/*'],
+    copyToCacheDirectory: true,
+    multiple: false,
   });
-  const {title, text} = await readPickedFile(file);
+
+  if (result.canceled) {
+    const error = new Error('Document picker cancelled');
+    error.code = 'DOCUMENT_PICKER_CANCELED';
+    throw error;
+  }
+
+  const file = result.assets?.[0];
+  if (!file?.uri) {
+    throw new Error('The selected file did not include a readable URI.');
+  }
+
+  const {title, text} = await readPickedFile({
+    uri: file.uri,
+    name: file.name,
+  });
   return ingestDocument({title, text, isOnline});
 }
 

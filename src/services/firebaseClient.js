@@ -1,134 +1,135 @@
 /**
- * Firebase client — Google Sign-In and FCM push notifications.
+ * Expo auth and push notifications.
  *
- * Google authentication is performed with `@react-native-google-signin/google-signin`
- * (configured through Firebase / Google Cloud OAuth clients). The resulting
- * ID token is handed to Supabase so chat history stays in one user store.
- *
- * Push notifications use `@react-native-firebase/messaging` so a Cloud Function
- * or backend worker can tell the device when a long-running AI job finishes.
+ * Google Sign-In uses `expo-auth-session` (works in Expo Go).
+ * Push uses `expo-notifications` instead of Firebase Messaging.
+ * Tokens can still be stored in Supabase `device_tokens`.
  */
 
-import {Platform, PermissionsAndroid} from 'react-native';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import {Platform} from 'react-native';
 import {ENV, hasGoogleSignInConfig} from '../config/env';
 import {saveDeviceToken} from './supabaseClient';
 
-let messagingModule = null;
-let googleModule = null;
+WebBrowser.maybeCompleteAuthSession();
 
-const loadGoogle = () => {
-  if (!googleModule) {
-    // eslint-disable-next-line global-require
-    googleModule = require('@react-native-google-signin/google-signin');
-  }
-  return googleModule;
-};
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
-const loadMessaging = () => {
-  if (!messagingModule) {
-    // eslint-disable-next-line global-require
-    messagingModule = require('@react-native-firebase/messaging').default;
-  }
-  return messagingModule;
+const googleDiscovery = {
+  authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+  tokenEndpoint: 'https://oauth2.googleapis.com/token',
+  revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
 };
 
 export const configureGoogleSignIn = () => {
-  if (!hasGoogleSignInConfig()) {
-    return false;
-  }
-  const {GoogleSignin} = loadGoogle();
-  GoogleSignin.configure({
-    webClientId: ENV.GOOGLE_WEB_CLIENT_ID,
-    iosClientId: ENV.GOOGLE_IOS_CLIENT_ID || undefined,
-    offlineAccess: true,
-    scopes: ['profile', 'email'],
-  });
-  return true;
+  WebBrowser.maybeCompleteAuthSession();
+  return hasGoogleSignInConfig();
 };
 
 export async function signInWithGoogle() {
   if (!hasGoogleSignInConfig()) {
     throw new Error(
-      'Google Sign-In is not configured. Add GOOGLE_WEB_CLIENT_ID from Firebase Authentication.',
+      'Google Sign-In is not configured. Add GOOGLE_WEB_CLIENT_ID from Google Cloud / Firebase.',
     );
   }
 
-  configureGoogleSignIn();
-  const {GoogleSignin, statusCodes} = loadGoogle();
+  const redirectUri = AuthSession.makeRedirectUri({
+    scheme: 'auraai',
+  });
 
-  try {
-    await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
-    const response = await GoogleSignin.signIn();
-    const tokens = await GoogleSignin.getTokens();
-    const user = response?.data?.user || response?.user || null;
+  const request = new AuthSession.AuthRequest({
+    clientId: ENV.GOOGLE_WEB_CLIENT_ID,
+    responseType: AuthSession.ResponseType.IdToken,
+    scopes: ['openid', 'profile', 'email'],
+    redirectUri,
+    extraParams: {
+      nonce: `${Date.now()}`,
+    },
+  });
 
-    return {
-      user,
-      idToken: tokens.idToken,
-      accessToken: tokens.accessToken,
-    };
-  } catch (error) {
-    if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
-      throw new Error('Google Sign-In was cancelled.');
-    }
-    if (error?.code === statusCodes.IN_PROGRESS) {
-      throw new Error('Google Sign-In is already in progress.');
-    }
-    if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-      throw new Error('Google Play Services is not available on this device.');
-    }
-    throw error;
+  const result = await request.promptAsync(googleDiscovery);
+  if (result.type !== 'success') {
+    throw new Error('Google Sign-In was cancelled.');
   }
+
+  const idToken = result.params.id_token;
+  if (!idToken) {
+    throw new Error('Google did not return an ID token.');
+  }
+
+  let email = '';
+  let name = '';
+  let picture = '';
+  try {
+    const payload = JSON.parse(atob(idToken.split('.')[1]));
+    email = payload.email || '';
+    name = payload.name || '';
+    picture = payload.picture || '';
+  } catch {
+    // Token still works for Supabase even if we cannot decode the profile.
+  }
+
+  return {
+    user: {
+      id: email || 'google-user',
+      email,
+      name,
+      photo: picture,
+    },
+    idToken,
+    accessToken: result.params.access_token,
+  };
 }
 
 export async function signOutGoogle() {
   try {
-    const {GoogleSignin} = loadGoogle();
-    const current = await GoogleSignin.getCurrentUser();
-    if (current) {
-      await GoogleSignin.signOut();
-    }
+    await WebBrowser.coolDownAsync();
   } catch {
-    // Google session may not exist when the user signed in with email.
+    // Expo Go may not need a browser cooldown.
   }
 }
 
-const requestAndroidNotificationPermission = async () => {
-  if (Platform.OS !== 'android' || Platform.Version < 33) {
-    return true;
-  }
-  const result = await PermissionsAndroid.request(
-    PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-  );
-  return result === PermissionsAndroid.RESULTS.GRANTED;
-};
-
-/**
- * Register for FCM and persist the token so a backend worker can target
- * this device when background AI processing completes.
- */
 export async function registerPushNotifications(userId) {
   try {
-    const permitted = await requestAndroidNotificationPermission();
-    if (!permitted) {
+    if (!Device.isDevice) {
       return null;
     }
 
-    const messaging = loadMessaging();
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-    if (!enabled) {
+    const existing = await Notifications.getPermissionsAsync();
+    let status = existing.status;
+    if (status !== 'granted') {
+      const asked = await Notifications.requestPermissionsAsync();
+      status = asked.status;
+    }
+    if (status !== 'granted') {
       return null;
     }
 
-    const token = await messaging().getToken();
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('aura-ai', {
+        name: 'Aura AI',
+        importance: Notifications.AndroidImportance.DEFAULT,
+      });
+    }
+
+    const tokenResponse = await Notifications.getExpoPushTokenAsync();
+    const token = tokenResponse.data;
     if (userId && token) {
       try {
         await saveDeviceToken(userId, token);
       } catch {
-        // Token persistence is best-effort; local notifications still work.
+        // Token persistence is best-effort.
       }
     }
     return token;
@@ -138,20 +139,18 @@ export async function registerPushNotifications(userId) {
 }
 
 export const subscribeToForegroundMessages = (handler) => {
-  try {
-    const messaging = loadMessaging();
-    return messaging().onMessage(async (remoteMessage) => {
-      handler(remoteMessage);
+  const sub = Notifications.addNotificationReceivedListener((notification) => {
+    handler({
+      notification: {
+        title: notification.request.content.title,
+        body: notification.request.content.body,
+      },
+      data: notification.request.content.data || {},
     });
-  } catch {
-    return () => {};
-  }
+  });
+  return () => sub.remove();
 };
 
-/**
- * Local stand-in for a completed background AI job. In production a Cloud
- * Function would send this data payload through FCM after the worker finishes.
- */
 export const describeAiJobNotification = (job) => ({
   title: job?.title || 'Aura finished processing',
   body:

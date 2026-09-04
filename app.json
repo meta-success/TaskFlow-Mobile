@@ -1,4 +1,44 @@
 {
-  "name": "AuraAI",
-  "displayName": "Aura AI"
+  "expo": {
+    "name": "Aura AI",
+    "slug": "aura-ai-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "auraai",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#07050F"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.auraaimobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#07050F"
+      },
+      "package": "com.auraaimobile",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-document-picker",
+      [
+        "expo-notifications",
+        {
+          "color": "#F3C77A"
+        }
+      ],
+      "expo-web-browser",
+      "expo-status-bar"
+    ]
+  }
 }

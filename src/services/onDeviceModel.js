@@ -189,8 +189,7 @@ const toPrediction = (probabilities, engine) => {
 };
 
 /**
- * Load TensorFlow.js. Prefer the React Native platform adapter when the
- * native module is linked; otherwise fall back to the pure-JS CPU backend.
+ * Load TensorFlow.js on the JS CPU backend (Expo Go compatible).
  */
 export async function initOnDeviceRuntime() {
   if (tfModule) {
@@ -201,15 +200,6 @@ export async function initOnDeviceRuntime() {
   }
 
   tfReadyPromise = (async () => {
-    try {
-      // Optional native adapter — safe to skip when Expo GL is not present.
-      // eslint-disable-next-line global-require
-      require('@tensorflow/tfjs-react-native');
-    } catch {
-      // CPU backend remains available through @tensorflow/tfjs.
-    }
-
-    // eslint-disable-next-line global-require
     const tf = require('@tensorflow/tfjs');
     await tf.ready();
     tfModule = tf;

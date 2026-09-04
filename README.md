@@ -1,6 +1,6 @@
 # Aura AI Mobile
 
-Professional proof-of-work for a React Native Android app that combines **cloud generative AI**, **on-device inference**, **RAG**, and **Supabase + Firebase** identity.
+Professional proof-of-work for an **Expo** React Native app that combines **cloud generative AI**, **on-device inference**, **RAG**, and **Supabase** identity.
 
 Aura is a dark, production-styled assistant. The default cloud path is **your OpenAI API key**. Gemini and OpenRouter stay available as optional fallbacks, and a TensorFlow.js model answers on-device when you are offline.
 
@@ -11,7 +11,7 @@ Aura is a dark, production-styled assistant. The default cloud path is **your Op
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │                         Aura AI Mobile                           │
-│                     (React Native 0.76 + Hermes)                 │
+│                     Expo SDK 57 + React Native                   │
 │                                                                  │
 │   Home · Chat · Knowledge · Settings                             │
 │              │                                                   │
@@ -22,7 +22,7 @@ Aura is a dark, production-styled assistant. The default cloud path is **your Op
 │      ┌───────┴────────┬──────────────────┐                       │
 │      ▼                ▼                  ▼                       │
 │ aiService.js    onDeviceModel.js     ragService.js               │
-│  OpenAI fetch    TFJS / linear        chunk → embed              │
+│  OpenAI fetch    TFJS CPU             chunk → embed              │
 │  Gemini /        sentiment +          retrieve top-k             │
 │  OpenRouter      local embeddings     augment prompt             │
 └──────┬─────────────────┬─────────────────┬───────────────────────┘
@@ -31,15 +31,15 @@ Aura is a dark, production-styled assistant. The default cloud path is **your Op
 ┌──────────────┐  ┌─────────────┐  ┌─────────────────────┐
 │ OpenAI API   │  │ Gemini /    │  │ Edge (on device)    │
 │ /v1/chat     │  │ OpenRouter  │  │ @tensorflow/tfjs    │
-│ completions  │  │  (optional) │  │ tfjs-react-native   │
+│ completions  │  │  (optional) │  │                     │
 └──────────────┘  └─────────────┘  └─────────────────────┘
        │
        ▼
 ┌──────────────────────────┐     ┌─────────────────────────────┐
-│ Supabase                 │     │ Firebase                    │
+│ Supabase                 │     │ Expo                        │
 │ • Email / password auth  │     │ • Google Sign-In (OAuth)    │
-│ • PostgreSQL `chats`     │     │ • FCM push for AI jobs      │
-│ • documents + tokens     │     │ • google-services.json      │
+│ • PostgreSQL `chats`     │     │ • Push notifications        │
+│ • documents + tokens     │     │ • Document picker           │
 └──────────────────────────┘     └─────────────────────────────┘
 ```
 
@@ -50,27 +50,31 @@ Aura is a dark, production-styled assistant. The default cloud path is **your Op
 3. If the device is **online**, `aiService` calls **OpenAI** (`https://api.openai.com/v1/chat/completions`) with your key. Gemini and OpenRouter remain optional.
 4. If the device is **offline** (or On-device is selected), `onDeviceModel` runs local TensorFlow.js inference and returns an Edge reply.
 5. The conversation is cached in Zustand / AsyncStorage and upserted into Supabase `chats`.
-6. Firebase Cloud Messaging can notify the device when a longer background AI job finishes.
+6. Expo Notifications can alert the device when a longer background AI job finishes.
 
 ---
 
-## Run the app
+## Run the app (Expo)
 
-Prerequisites: Node 18+, JDK 17, Android Studio with an emulator or USB device, and Android SDK 35.
+Install [Expo Go](https://expo.dev/go) on your phone or use an Android emulator that already has Expo Go.
 
 ```bash
 npm install
-npx react-native start
-npx react-native run-android
+npx expo start
 ```
 
-Or in one step after Metro is already running:
+Then:
 
-```bash
-npm run android
-```
+- press `a` to open the Android emulator, or
+- scan the QR code with Expo Go on your phone.
 
-Copy `src/config/env.local.example.js` to `src/config/env.local.js` and fill in keys before using cloud features. You can tap **Continue as guest** to explore the UI and on-device model without any keys. A sample RAG file lives at `assets/sample-knowledge.md` — copy it to the device and upload it from the Knowledge tab.
+If PowerShell blocks `npx`, use `npx.cmd expo start` or `npm.cmd start`.
+
+You do **not** need Android Studio Gradle for this path. Guest mode works immediately. Paste your OpenAI key in **Settings**.
+
+The previous bare React Native `android/` / `ios/` trees were moved to `legacy-native/` so Expo can run as a managed app.
+
+Copy `src/config/env.local.example.js` to `src/config/env.local.js` if you prefer file-based keys. A sample RAG file lives at `assets/sample-knowledge.md`.
 
 ---
 
@@ -127,27 +131,14 @@ Email/password sign-in and Google (via ID token) both persist chat history to `c
 
 ---
 
-## Firebase setup
+## Google Sign-In and notifications (Expo)
 
-1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com/).
-2. Add an **Android** app with package name `com.auraaimobile`.
-3. Download `google-services.json` and place it at `android/app/google-services.json`.
-   The Gradle plugin is applied automatically only when this file exists.
-4. Enable **Authentication → Google**.
-5. In Google Cloud Console (the same project), create an OAuth **Web client**.
-   Copy that client ID into `GOOGLE_WEB_CLIENT_ID`.
-6. Add your debug SHA-1 so Android Google Sign-In is accepted:
+1. In [Google Cloud Console](https://console.cloud.google.com/), create an OAuth **Web client**.
+2. Copy that client ID into `GOOGLE_WEB_CLIENT_ID` (Settings / `env.local.js`).
+3. Add the Expo redirect URI for this app (scheme `auraai`) to the OAuth client.
+4. Push uses Expo Notifications. The Expo push token is stored in Supabase `device_tokens` when you are signed in.
 
-   ```bash
-   cd android
-   ./gradlew signingReport
-   ```
-
-7. Enable **Cloud Messaging**. A worker or Cloud Function can send a data payload
-   `{ "type": "ai_complete", "conversationId": "..." }` when a background generation finishes.
-   The app registers the FCM token into Supabase `device_tokens` and listens in the foreground.
-
-Example `google-services.json` shape: `android/app/google-services.json.example`.
+Firebase `google-services.json` is not required for Expo Go.
 
 ---
 
@@ -157,15 +148,14 @@ Example `google-services.json` shape: `android/app/google-services.json.example`
 App.js
 src/
   config/env.js                 # Keys + model catalog
-  services/aiService.js         # Gemini SDK + OpenRouter fetch
-  services/onDeviceModel.js     # TFJS / edge sentiment + local embeddings
+  services/aiService.js         # OpenAI + Gemini + OpenRouter
+  services/onDeviceModel.js     # TFJS edge sentiment + local embeddings
   services/ragService.js        # Chunk, embed, retrieve, augment
   services/supabaseClient.js    # Auth + chats table
-  services/firebaseClient.js    # Google Sign-In + FCM
+  services/firebaseClient.js    # Expo Google Sign-In + notifications
   store/useAppStore.js          # Zustand global state
   screens/                      # Home, Chat, Documents, Settings, Auth
   navigation/AppNavigator.js    # React Navigation tabs + auth stack
-android/                        # Standard RN Gradle project
 supabase/schema.sql
 ```
 
@@ -173,12 +163,10 @@ supabase/schema.sql
 
 ## Edge AI notes
 
-`src/services/onDeviceModel.js` initializes `@tensorflow/tfjs` and, when linked, `@tensorflow/tfjs-react-native`. It then runs a small 16-feature linear head with tensor ops (`matMul` + `softmax`) for sentiment. If the native adapter is missing, the same weights run in pure JavaScript so offline chat never hard-crashes.
-
-To swap in a real `.tflite` classifier later, drop the file under `android/app/src/main/assets/` and load it with `react-native-fast-tflite` — the service already has a guarded hook for that runtime.
+`src/services/onDeviceModel.js` runs `@tensorflow/tfjs` on the JS CPU backend (Expo Go compatible). It scores sentiment with a small linear head (`matMul` + `softmax`) and falls back to the same weights in pure JavaScript if tensors fail.
 
 ---
 
 ## License
 
-Private proof-of-work. Replace keys, never commit `src/config/env.local.js` or `google-services.json`.
+Private proof-of-work. Replace keys, never commit `src/config/env.local.js`.
