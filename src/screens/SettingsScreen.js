@@ -1,9 +1,9 @@
 import React from 'react';
 import {Pressable, StyleSheet, Switch, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {Ionicons} from '@expo/vector-icons';
 import {PrimaryButton} from '../components/PrimaryButton';
 import {Screen} from '../components/Screen';
-import {GlassCard} from '../components/GlassCard';
 import {useAppStore} from '../store/useAppStore';
 import {colors, typography} from '../theme';
 import {
@@ -18,24 +18,32 @@ import {
 import {maskSecret} from '../utils/format';
 
 const PROVIDERS = [
-  {id: 'openai', label: 'OpenAI', hint: 'Your official API key'},
-  {id: 'auto', label: 'Auto', hint: 'OpenAI, then Gemini, then OpenRouter'},
-  {id: 'gemini', label: 'Gemini', hint: 'Optional Google fallback'},
-  {id: 'openrouter', label: 'OpenRouter', hint: 'Optional multi-model router'},
-  {id: 'on-device', label: 'On-device', hint: 'Edge sentiment, no cloud'},
+  {id: 'openai', label: 'OpenAI'},
+  {id: 'auto', label: 'Auto'},
+  {id: 'gemini', label: 'Gemini'},
+  {id: 'openrouter', label: 'Router'},
+  {id: 'on-device', label: 'On-device'},
 ];
 
-function ChoiceRow({selected, title, hint, onPress}) {
+function Chip({selected, label, onPress}) {
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.choice, selected && styles.choiceOn]}>
-      <View style={styles.flex}>
-        <Text style={styles.choiceTitle}>{title}</Text>
-        <Text style={styles.choiceHint}>{hint}</Text>
-      </View>
-      <View style={[styles.radio, selected && styles.radioOn]} />
+      style={[styles.chip, selected && styles.chipOn]}>
+      <Text style={[styles.chipText, selected && styles.chipTextOn]}>
+        {label}
+      </Text>
     </Pressable>
+  );
+}
+
+function StatusRow({icon, label, ok, detail}) {
+  return (
+    <View style={styles.statusRow}>
+      <Ionicons name={icon} size={18} color={ok ? colors.online : colors.textDim} />
+      <Text style={styles.statusLabel}>{label}</Text>
+      <Text style={[styles.statusValue, ok && styles.statusOk]}>{detail}</Text>
+    </View>
   );
 }
 
@@ -54,95 +62,109 @@ export function SettingsScreen() {
   );
   const signOut = useAppStore((state) => state.signOut);
   const user = useAppStore((state) => state.user);
-  const lastNotification = useAppStore((state) => state.lastNotification);
+
+  const modelCatalog =
+    provider === 'gemini'
+      ? MODEL_CATALOG.gemini
+      : provider === 'openrouter'
+        ? MODEL_CATALOG.openrouter
+        : provider === 'on-device'
+          ? []
+          : MODEL_CATALOG.openai;
+
+  const selectedModel =
+    provider === 'gemini'
+      ? geminiModel
+      : provider === 'openrouter'
+        ? openrouterModel
+        : openaiModel;
+
+  const onPickModel = (id) => {
+    if (provider === 'gemini') {
+      setGeminiModel(id);
+      return;
+    }
+    if (provider === 'openrouter') {
+      setOpenrouterModel(id);
+      return;
+    }
+    setOpenAiModel(id);
+  };
 
   return (
     <Screen scroll>
       <SafeAreaView edges={['top']}>
-        <Text style={styles.kicker}>Studio</Text>
+        <Text style={styles.kicker}>Account</Text>
         <Text style={styles.title}>Settings</Text>
-        <Text style={styles.body}>
-          Signed in as {user?.email || 'local session'}. Add keys in your .env
-          file (EXPO_PUBLIC_…). Restart Expo after you change them.
+        <Text style={styles.body} numberOfLines={1}>
+          {user?.email || 'Guest session'}
         </Text>
 
-        <GlassCard style={styles.block}>
-          <Text style={styles.sectionTop}>OpenAI</Text>
-          <Text style={styles.kv}>
-            Key: {hasOpenAiKey() ? maskSecret(getOpenAiKey()) : 'Add EXPO_PUBLIC_OPENAI_API_KEY to .env'}
-          </Text>
-        </GlassCard>
+        <Text style={styles.section}>Keys</Text>
+        <View style={styles.card}>
+          <StatusRow
+            icon="key-outline"
+            label="OpenAI"
+            ok={hasOpenAiKey()}
+            detail={hasOpenAiKey() ? maskSecret(getOpenAiKey()) : 'Add to .env'}
+          />
+          <StatusRow
+            icon="server-outline"
+            label="Supabase"
+            ok={hasSupabaseConfig()}
+            detail={hasSupabaseConfig() ? 'Ready' : 'Optional'}
+          />
+          <StatusRow
+            icon="logo-google"
+            label="Google"
+            ok={hasGoogleSignInConfig()}
+            detail={hasGoogleSignInConfig() ? 'Ready' : 'Optional'}
+          />
+          <StatusRow
+            icon="flash-outline"
+            label="Gemini"
+            ok={hasGeminiKey()}
+            detail={hasGeminiKey() ? 'Ready' : 'Optional'}
+          />
+          <StatusRow
+            icon="git-network-outline"
+            label="OpenRouter"
+            ok={hasOpenRouterKey()}
+            detail={hasOpenRouterKey() ? 'Ready' : 'Optional'}
+          />
+        </View>
 
         <Text style={styles.section}>Provider</Text>
-        {PROVIDERS.map((item) => (
-          <ChoiceRow
-            key={item.id}
-            selected={provider === item.id}
-            title={item.label}
-            hint={item.hint}
-            onPress={() => setProvider(item.id)}
-          />
-        ))}
+        <View style={styles.chips}>
+          {PROVIDERS.map((item) => (
+            <Chip
+              key={item.id}
+              selected={provider === item.id}
+              label={item.label}
+              onPress={() => setProvider(item.id)}
+            />
+          ))}
+        </View>
 
-        <Text style={styles.section}>OpenAI models</Text>
-        {MODEL_CATALOG.openai.map((item) => (
-          <ChoiceRow
-            key={item.id}
-            selected={openaiModel === item.id}
-            title={item.label}
-            hint={item.hint}
-            onPress={() => setOpenAiModel(item.id)}
-          />
-        ))}
-
-        <Text style={styles.section}>Optional Gemini models</Text>
-        {MODEL_CATALOG.gemini.map((item) => (
-          <ChoiceRow
-            key={item.id}
-            selected={geminiModel === item.id}
-            title={item.label}
-            hint={item.hint}
-            onPress={() => setGeminiModel(item.id)}
-          />
-        ))}
-
-        <Text style={styles.section}>Optional OpenRouter models</Text>
-        {MODEL_CATALOG.openrouter.map((item) => (
-          <ChoiceRow
-            key={item.id}
-            selected={openrouterModel === item.id}
-            title={item.label}
-            hint={item.hint}
-            onPress={() => setOpenrouterModel(item.id)}
-          />
-        ))}
-
-        <GlassCard style={styles.block}>
-          <Text style={styles.sectionTop}>Integrations</Text>
-          <Text style={styles.kv}>
-            OpenAI: {hasOpenAiKey() ? 'Ready' : 'Missing'}
-          </Text>
-          <Text style={styles.kv}>
-            Gemini: {hasGeminiKey() ? 'Ready' : 'Optional'}
-          </Text>
-          <Text style={styles.kv}>
-            OpenRouter: {hasOpenRouterKey() ? 'Ready' : 'Optional'}
-          </Text>
-          <Text style={styles.kv}>
-            Supabase: {hasSupabaseConfig() ? 'Ready' : 'Optional'}
-          </Text>
-          <Text style={styles.kv}>
-            Google Sign-In: {hasGoogleSignInConfig() ? 'Ready' : 'Optional'}
-          </Text>
-        </GlassCard>
+        {modelCatalog.length ? (
+          <>
+            <Text style={styles.section}>Model</Text>
+            <View style={styles.chips}>
+              {modelCatalog.map((item) => (
+                <Chip
+                  key={item.id}
+                  selected={selectedModel === item.id}
+                  label={item.label}
+                  onPress={() => onPickModel(item.id)}
+                />
+              ))}
+            </View>
+          </>
+        ) : null}
 
         <View style={styles.switchRow}>
-          <View style={styles.flex}>
-            <Text style={styles.choiceTitle}>AI job notifications</Text>
-            <Text style={styles.choiceHint}>
-              FCM when a background generation finishes
-            </Text>
-          </View>
+          <Ionicons name="notifications-outline" size={18} color={colors.accent} />
+          <Text style={styles.switchLabel}>Notifications</Text>
           <Switch
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
@@ -150,13 +172,13 @@ export function SettingsScreen() {
             trackColor={{true: colors.primary, false: colors.border}}
           />
         </View>
-        {lastNotification ? (
-          <Text style={styles.notice}>
-            Last push: {lastNotification.title} — {lastNotification.body}
-          </Text>
-        ) : null}
 
-        <PrimaryButton label="Leave the studio" variant="danger" onPress={signOut} />
+        <PrimaryButton
+          icon="log-out-outline"
+          label="Sign out"
+          variant="danger"
+          onPress={signOut}
+        />
       </SafeAreaView>
     </Screen>
   );
@@ -169,86 +191,91 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.display,
-    marginTop: 4,
+    fontSize: 32,
+    marginTop: 2,
   },
   body: {
     color: colors.textMuted,
-    lineHeight: 22,
+    marginTop: 4,
     marginBottom: 8,
-    marginTop: 8,
-  },
-  block: {
-    marginTop: 8,
-    marginBottom: 8,
-    gap: 10,
   },
   section: {
     color: colors.text,
     fontWeight: '700',
     marginTop: 18,
     marginBottom: 8,
-    fontSize: 16,
+    fontSize: 15,
   },
-  sectionTop: {
-    color: colors.text,
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  choice: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderColor: 'rgba(255,255,255,0.28)',
-    borderWidth: 1,
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.14)',
     borderRadius: 16,
-    padding: 13,
-    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.12)',
   },
-  choiceOn: {
+  statusLabel: {
+    color: colors.text,
+    fontWeight: '700',
+    width: 88,
+  },
+  statusValue: {
+    flex: 1,
+    color: colors.textDim,
+    textAlign: 'right',
+    fontSize: 12,
+  },
+  statusOk: {
+    color: colors.online,
+  },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderColor: 'rgba(255,255,255,0.22)',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  chipOn: {
     borderColor: colors.accent,
     backgroundColor: colors.accentSoft,
   },
-  choiceTitle: {
-    color: colors.text,
-    fontWeight: '700',
-  },
-  choiceHint: {
-    color: colors.textDim,
-    marginTop: 3,
-    fontSize: 12,
-  },
-  radio: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.textDim,
-  },
-  radioOn: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  kv: {
+  chipText: {
     color: colors.textMuted,
-    marginTop: 4,
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  chipTextOn: {
+    color: colors.accent,
   },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 18,
-    padding: 14,
+    gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
-    marginVertical: 12,
+    borderColor: 'rgba(255,255,255,0.18)',
+    marginVertical: 18,
   },
-  flex: {
+  switchLabel: {
     flex: 1,
-  },
-  notice: {
-    color: colors.accent,
-    marginBottom: 8,
+    color: colors.text,
+    fontWeight: '700',
   },
 });

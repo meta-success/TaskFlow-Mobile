@@ -116,32 +116,56 @@ Aura calls `https://openrouter.ai/api/v1/chat/completions` with `fetch`. Switch 
 
 ---
 
-## Supabase setup
+## Supabase keys
 
-1. Create a project at [supabase.com](https://supabase.com/).
-2. In **Project Settings → API**, copy the Project URL and the `anon` public key.
-3. Put them in `src/config/env.local.js` as `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
-4. Open **Authentication → Providers** and enable **Email**.
-5. Enable **Google** if you want the Firebase Google token to create a Supabase session (`signInWithIdToken`).
-6. In the SQL Editor, run [`supabase/schema.sql`](supabase/schema.sql). That creates:
+You need two values: the **project URL** and the **anon public key**.
 
-   - `chats` — conversation history (`messages` JSONB)
-   - `documents` — RAG payloads
-   - `device_tokens` — FCM tokens for AI-job notifications
-   - Row Level Security so a user only reads their own rows
+1. Open [supabase.com](https://supabase.com/) and sign in.
+2. **New project** (or open an existing one). Wait until it finishes provisioning.
+3. Open **Project Settings → API**.
+4. Copy:
+   - **Project URL** → `EXPO_PUBLIC_SUPABASE_URL`
+   - **anon public** key (under Project API keys) → `EXPO_PUBLIC_SUPABASE_ANON_KEY`  
+     Do **not** use the `service_role` key in the app.
+5. Paste both into the project-root `.env` file.
+6. **Authentication → Providers → Email** → enable Email.
+7. In **SQL Editor**, run [`supabase/schema.sql`](supabase/schema.sql) so `chats`, `documents`, and `device_tokens` exist.
 
-Email/password sign-in and Google (via ID token) both persist chat history to `chats`.
+Restart Expo after saving `.env`: `npm.cmd start -- --clear`.
+
+Guest mode works without Supabase. Email sign-in and cloud chat history need these keys.
 
 ---
 
-## Google Sign-In and notifications (Expo)
+## Firebase / Google keys (Expo Go)
 
-1. In [Google Cloud Console](https://console.cloud.google.com/), create an OAuth **Web client**.
-2. Copy that client ID into `GOOGLE_WEB_CLIENT_ID` (Settings / `env.local.js`).
-3. Add the Expo redirect URI for this app (scheme `auraai`) to the OAuth client.
-4. Push uses Expo Notifications. The Expo push token is stored in Supabase `device_tokens` when you are signed in.
+This Expo app does **not** need `google-services.json` for daily use in Expo Go. What you actually add to `.env` is a **Google OAuth Web client ID**.
 
-Firebase `google-services.json` is not required for Expo Go.
+### Google Sign-In (used by the app)
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a project (or pick one) and enable **Google Identity / OAuth**.
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID**.
+4. If asked, configure the OAuth consent screen (External, add your email as a test user).
+5. Application type: **Web application**.
+6. Add authorized redirect URIs:
+   - `https://auth.expo.io/@YOUR_EXPO_USERNAME/aura-ai-mobile`
+   - `auraai://`
+7. Copy the **Client ID** (`….apps.googleusercontent.com`) into `.env`:
+
+   `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-id.apps.googleusercontent.com`
+
+Optional iOS client ID (native builds): `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`.
+
+### If you also want a Firebase project
+
+1. Open [Firebase Console](https://console.firebase.google.com/).
+2. **Add project** → you can select the same Google Cloud project.
+3. Project settings (gear) → **Your apps** is only required for a **development/production build**, not Expo Go.
+4. For push later: enable **Cloud Messaging**. Expo Go cannot use custom FCM; use an Expo development build.
+5. Set `EXPO_PUBLIC_FIREBASE_ENABLED=true` only when you are on a native build that should register push tokens.
+
+Never commit `.env`, `google-services.json`, or `GoogleService-Info.plist`.
 
 ---
 

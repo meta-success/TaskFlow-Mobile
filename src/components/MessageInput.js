@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
-import {Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
+import {Pressable, StyleSheet, TextInput, View} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
 import {colors, radius} from '../theme';
 
 export function MessageInput({
   onSend,
-  placeholder = 'Ask Aura anything…',
+  placeholder = 'Message Aura…',
   disabled = false,
-  accessoryLabel,
   accessoryActive = false,
   onAccessoryPress,
 }) {
@@ -26,8 +26,13 @@ export function MessageInput({
       {onAccessoryPress ? (
         <Pressable
           onPress={onAccessoryPress}
-          style={[styles.accessory, accessoryActive && styles.accessoryOn]}>
-          <Text style={styles.accessoryText}>{accessoryLabel || 'RAG'}</Text>
+          style={[styles.accessory, accessoryActive && styles.accessoryOn]}
+          accessibilityLabel="Toggle RAG">
+          <Ionicons
+            name="folder-open"
+            size={18}
+            color={accessoryActive ? colors.accent : colors.text}
+          />
         </Pressable>
       ) : null}
       <TextInput
@@ -43,8 +48,9 @@ export function MessageInput({
       <Pressable
         onPress={submit}
         disabled={disabled || !value.trim()}
-        style={[styles.send, (!value.trim() || disabled) && styles.sendOff]}>
-        <Text style={styles.sendText}>↑</Text>
+        style={[styles.send, (!value.trim() || disabled) && styles.sendOff]}
+        accessibilityLabel="Send">
+        <Ionicons name="send" size={18} color="#3B2200" />
       </Pressable>
     </View>
   );
@@ -57,59 +63,47 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 14,
     paddingTop: 10,
-    paddingBottom: 12,
+    paddingBottom: 10,
     borderTopWidth: 1,
-    borderTopColor: colors.borderStrong,
-    backgroundColor: 'rgba(16, 12, 28, 0.92)',
+    borderTopColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(18, 8, 48, 0.72)',
   },
   input: {
     flex: 1,
-    minHeight: 48,
-    maxHeight: 120,
+    minHeight: 44,
+    maxHeight: 110,
     backgroundColor: colors.bgInput,
     color: colors.text,
     borderRadius: radius.md,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.22)',
   },
   send: {
     backgroundColor: colors.accent,
     borderRadius: radius.pill,
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendOff: {
     opacity: 0.35,
   },
-  sendText: {
-    color: '#2A1B08',
-    fontWeight: '800',
-    fontSize: 20,
-    marginTop: -2,
-  },
   accessory: {
-    height: 48,
-    borderRadius: radius.md,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 10,
+    borderColor: 'rgba(255,255,255,0.22)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bgCard,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   accessoryOn: {
     borderColor: colors.accent,
     backgroundColor: colors.accentSoft,
-  },
-  accessoryText: {
-    color: colors.text,
-    fontWeight: '700',
-    fontSize: 11,
-    letterSpacing: 0.4,
   },
 });

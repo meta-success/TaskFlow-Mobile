@@ -2,8 +2,8 @@ import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {Ionicons} from '@expo/vector-icons';
 import {Screen} from '../components/Screen';
-import {GlassCard} from '../components/GlassCard';
 import {useAppStore} from '../store/useAppStore';
 import {colors, typography} from '../theme';
 import {formatRelative} from '../utils/format';
@@ -32,10 +32,13 @@ export function HomeScreen() {
       : provider === 'openrouter'
         ? labelForModel('openrouter', openrouterModel)
         : provider === 'on-device'
-          ? 'Edge sentiment'
+          ? 'On-device'
           : labelForModel('gemini', geminiModel);
 
   const greeting = user?.user_metadata?.full_name || user?.email || 'Guest';
+  const hour = new Date().getHours();
+  const hello =
+    hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   const startChat = () => {
     createConversation();
@@ -45,81 +48,54 @@ export function HomeScreen() {
   return (
     <Screen scroll contentStyle={styles.content}>
       <SafeAreaView edges={['top']}>
-        <Text style={styles.kicker}>
-          {new Date().getHours() < 12
-            ? 'Good morning'
-            : new Date().getHours() < 18
-              ? 'Good afternoon'
-              : 'Good evening'}
-        </Text>
-        <Text style={styles.title}>{greeting.split('@')[0]}</Text>
-        <Text style={styles.lede}>
-          Your studio is ready. OpenAI when you are connected. Edge
-          intelligence when you are not.
+        <Text style={styles.kicker}>{hello}</Text>
+        <Text style={styles.title} numberOfLines={1}>
+          {greeting.split('@')[0]}
         </Text>
 
-        <View style={styles.statusRow}>
-          <View style={[styles.pill, isOnline ? styles.online : styles.offline]}>
-            <View style={[styles.dot, isOnline ? styles.dotOn : styles.dotOff]} />
-            <Text style={styles.pillText}>
-              {isOnline ? 'Live' : 'Offline · Edge'}
-            </Text>
-          </View>
-          <View style={styles.pill}>
-            <Text style={styles.pillText}>{modelLabel}</Text>
-          </View>
-          <View style={styles.pill}>
-            <Text style={styles.pillText}>
-              {hasOpenAiKey() ? 'OpenAI ready' : 'No .env key'}
-            </Text>
-          </View>
+        <View style={styles.status}>
+          <StatusChip
+            icon={isOnline ? 'wifi' : 'cloud-offline-outline'}
+            label={isOnline ? 'Online' : 'Offline'}
+            color={isOnline ? colors.online : colors.offline}
+          />
+          <StatusChip icon="sparkles-outline" label={modelLabel} />
+          <StatusChip
+            icon={hasOpenAiKey() ? 'checkmark-circle' : 'alert-circle-outline'}
+            label={hasOpenAiKey() ? 'OpenAI' : 'No key'}
+            color={hasOpenAiKey() ? colors.online : colors.offline}
+          />
         </View>
 
-        <GlassCard glow style={styles.hero}>
-          <Text style={styles.heroKicker}>Tonight’s canvas</Text>
-          <Text style={styles.heroTitle}>Start a luminous conversation</Text>
-          <Text style={styles.heroBody}>
-            GPT replies with your own key. Toggle RAG to ground answers in your
-            documents.
-          </Text>
-          <Pressable style={styles.heroBtn} onPress={startChat}>
-            <Text style={styles.heroBtnText}>New conversation</Text>
-          </Pressable>
-        </GlassCard>
+        <Pressable style={styles.cta} onPress={startChat}>
+          <Ionicons name="chatbubble-ellipses" size={20} color="#3B2200" />
+          <Text style={styles.ctaText}>New chat</Text>
+        </Pressable>
 
-        <View style={styles.grid}>
-          <Pressable
-            style={styles.tile}
-            onPress={() => navigation.navigate('Documents')}>
-            <Text style={styles.tileGlyph}>▣</Text>
-            <Text style={styles.tileTitle}>Knowledge</Text>
-            <Text style={styles.tileBody}>
-              {documents.length} indexed file{documents.length === 1 ? '' : 's'}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={styles.tile}
+        <View style={styles.actions}>
+          <ActionTile
+            icon="folder-open"
+            title="Documents"
+            subtitle={`${documents.length} file${documents.length === 1 ? '' : 's'}`}
+            onPress={() => navigation.navigate('Documents')}
+          />
+          <ActionTile
+            icon="pulse"
+            title="Sentiment"
+            subtitle={
+              lastSentiment
+                ? `${lastSentiment.label} ${Math.round(lastSentiment.confidence * 100)}%`
+                : 'On-device'
+            }
             onPress={() =>
-              analyzeLocalSentiment(
-                'Aura feels elegant, fast, and genuinely helpful.',
-              )
-            }>
-            <Text style={styles.tileGlyph}>✧</Text>
-            <Text style={styles.tileTitle}>Sentiment</Text>
-            <Text style={styles.tileBody}>
-              {lastSentiment
-                ? `${lastSentiment.label} · ${Math.round(lastSentiment.confidence * 100)}%`
-                : 'Run on-device AI'}
-            </Text>
-          </Pressable>
+              analyzeLocalSentiment('Aura feels elegant, fast, and helpful.')
+            }
+          />
         </View>
 
-        <Text style={styles.section}>Recent rooms</Text>
+        <Text style={styles.section}>Recent</Text>
         {conversations.length === 0 ? (
-          <Text style={styles.empty}>
-            No conversations yet. Begin one and it will live on this device —
-            and in Supabase when you sign in.
-          </Text>
+          <Text style={styles.empty}>No chats yet. Start one above.</Text>
         ) : (
           conversations.slice(0, 6).map((item) => (
             <Pressable
@@ -129,15 +105,15 @@ export function HomeScreen() {
                 openConversation(item.id);
                 navigation.navigate('Chat');
               }}>
-              <View style={styles.rowMark}>
-                <Text style={styles.rowGlyph}>◎</Text>
+              <View style={styles.rowIcon}>
+                <Ionicons name="chatbubble-outline" size={18} color={colors.accent} />
               </View>
               <View style={styles.flex}>
                 <Text style={styles.rowTitle} numberOfLines={1}>
                   {item.title}
                 </Text>
                 <Text style={styles.rowMeta}>
-                  {item.provider || 'aura'} · {formatRelative(item.updatedAt)}
+                  {formatRelative(item.updatedAt)}
                 </Text>
               </View>
               <Text style={styles.count}>{item.messages.length}</Text>
@@ -149,9 +125,30 @@ export function HomeScreen() {
   );
 }
 
+function StatusChip({icon, label, color = colors.text}) {
+  return (
+    <View style={styles.chip}>
+      <Ionicons name={icon} size={14} color={color} />
+      <Text style={styles.chipText} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function ActionTile({icon, title, subtitle, onPress}) {
+  return (
+    <Pressable style={styles.tile} onPress={onPress}>
+      <Ionicons name={icon} size={20} color={colors.accent} />
+      <Text style={styles.tileTitle}>{title}</Text>
+      <Text style={styles.tileBody}>{subtitle}</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
-    paddingBottom: 28,
+    paddingBottom: 16,
   },
   kicker: {
     ...typography.caption,
@@ -159,146 +156,98 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.display,
-    marginTop: 4,
+    fontSize: 32,
+    marginTop: 2,
   },
-  lede: {
-    color: colors.textMuted,
-    marginTop: 8,
-    lineHeight: 22,
-  },
-  statusRow: {
+  status: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginTop: 18,
+    marginTop: 14,
   },
-  pill: {
+  chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    borderColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderColor: 'rgba(255,255,255,0.22)',
     borderWidth: 1,
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    maxWidth: '100%',
   },
-  online: {
-    borderColor: 'rgba(126,224,184,0.4)',
-  },
-  offline: {
-    borderColor: 'rgba(255,138,91,0.45)',
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
-  dotOn: {
-    backgroundColor: colors.online,
-  },
-  dotOff: {
-    backgroundColor: colors.offline,
-  },
-  pillText: {
+  chipText: {
     color: colors.text,
     fontWeight: '600',
     fontSize: 12,
   },
-  hero: {
-    marginTop: 20,
-    padding: 20,
-  },
-  heroKicker: {
-    ...typography.caption,
-    color: colors.primary,
-  },
-  heroTitle: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '800',
-    marginTop: 8,
-    letterSpacing: -0.4,
-  },
-  heroBody: {
-    color: colors.textMuted,
-    marginTop: 8,
-    lineHeight: 21,
-  },
-  heroBtn: {
+  cta: {
     marginTop: 16,
-    alignSelf: 'flex-start',
+    minHeight: 48,
+    borderRadius: 16,
     backgroundColor: colors.accent,
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
-  heroBtnText: {
-    color: '#2A1B08',
+  ctaText: {
+    color: '#3B2200',
     fontWeight: '800',
+    fontSize: 16,
   },
-  grid: {
+  actions: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 14,
+    marginTop: 12,
   },
   tile: {
     flex: 1,
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderStrong,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderColor: 'rgba(255,255,255,0.22)',
     borderWidth: 1,
-    borderRadius: 22,
-    padding: 16,
-    minHeight: 132,
-  },
-  tileGlyph: {
-    color: colors.accent,
-    fontSize: 20,
+    borderRadius: 16,
+    padding: 14,
+    gap: 6,
   },
   tileTitle: {
     color: colors.text,
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
-    marginTop: 14,
   },
   tileBody: {
-    color: colors.textMuted,
-    marginTop: 6,
-    fontSize: 13,
+    color: colors.textDim,
+    fontSize: 12,
   },
   section: {
     color: colors.text,
     fontWeight: '700',
-    fontSize: 18,
-    marginTop: 28,
-    marginBottom: 12,
+    fontSize: 16,
+    marginTop: 22,
+    marginBottom: 10,
   },
   empty: {
     color: colors.textDim,
-    lineHeight: 21,
   },
   row: {
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    borderRadius: 20,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
+    borderColor: 'rgba(255,255,255,0.18)',
   },
-  rowMark: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
+  rowIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  rowGlyph: {
-    color: colors.accent,
-    fontSize: 16,
   },
   flex: {
     flex: 1,
@@ -309,7 +258,7 @@ const styles = StyleSheet.create({
   },
   rowMeta: {
     color: colors.textDim,
-    marginTop: 4,
+    marginTop: 2,
     fontSize: 12,
   },
   count: {

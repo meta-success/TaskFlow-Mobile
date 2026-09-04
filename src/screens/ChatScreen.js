@@ -1,6 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {FlatList, Pressable, StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {Ionicons} from '@expo/vector-icons';
 import {ChatBubble, TypingDots} from '../components/ChatBubble';
 import {MessageInput} from '../components/MessageInput';
 import {AuroraBackground} from '../components/AuroraBackground';
@@ -19,7 +20,6 @@ export function ChatScreen() {
   const isOnline = useAppStore((state) => state.isOnline);
   const provider = useAppStore((state) => state.provider);
   const openaiModel = useAppStore((state) => state.openaiModel);
-  const documents = useAppStore((state) => state.documents);
   const sendMessage = useAppStore((state) => state.sendMessage);
   const createConversation = useAppStore((state) => state.createConversation);
   const openConversation = useAppStore((state) => state.openConversation);
@@ -32,7 +32,7 @@ export function ChatScreen() {
   const messages = conversation?.messages || [];
   const modelName =
     !isOnline || provider === 'on-device'
-      ? 'Edge AI'
+      ? 'On-device'
       : provider === 'openai' || provider === 'auto'
         ? labelForModel('openai', openaiModel)
         : provider;
@@ -44,25 +44,25 @@ export function ChatScreen() {
         <View style={styles.toolbar}>
           <View style={styles.flex}>
             <Text style={styles.title} numberOfLines={1}>
-              {conversation?.title || 'New conversation'}
+              {conversation?.title || 'New chat'}
             </Text>
-            <Text style={styles.meta}>
+            <Text style={styles.meta} numberOfLines={1}>
               {modelName}
-              {useRag ? '  ·  grounded' : ''}
+              {useRag ? ' · RAG' : ''}
             </Text>
           </View>
           <Pressable
-            style={styles.newBtn}
-            onPress={() => openConversation(createConversation())}>
-            <Text style={styles.newText}>New</Text>
+            style={styles.iconBtn}
+            onPress={() => openConversation(createConversation())}
+            accessibilityLabel="New chat">
+            <Ionicons name="add" size={22} color={colors.accent} />
           </Pressable>
         </View>
 
         {!isOnline ? (
           <View style={styles.banner}>
-            <Text style={styles.bannerText}>
-              You are offline. Aura is answering with the on-device model.
-            </Text>
+            <Ionicons name="cloud-offline-outline" size={16} color={colors.accent} />
+            <Text style={styles.bannerText}>Offline — using on-device AI</Text>
           </View>
         ) : null}
 
@@ -77,11 +77,14 @@ export function ChatScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyCard}>
-              <Text style={styles.emptyGlyph}>◎</Text>
-              <Text style={styles.emptyTitle}>A quiet room</Text>
+              <Ionicons
+                name="chatbubbles-outline"
+                size={40}
+                color={colors.accent}
+              />
+              <Text style={styles.emptyTitle}>Ask anything</Text>
               <Text style={styles.empty}>
-                Ask anything. OpenAI will reply with your key. Turn on RAG to
-                consult uploaded documents.
+                Replies use your OpenAI key. Turn on RAG to use uploaded docs.
               </Text>
             </View>
           }
@@ -91,7 +94,6 @@ export function ChatScreen() {
         <MessageInput
           onSend={(text) => sendMessage(text, {useRag})}
           disabled={chatLoading}
-          accessoryLabel={documents.length ? `RAG ${documents.length}` : 'RAG'}
           accessoryActive={useRag}
           onAccessoryPress={() => setUseRag((value) => !value)}
         />
@@ -109,42 +111,43 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toolbar: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
   title: {
     color: colors.text,
     fontWeight: '800',
     fontSize: 18,
-    letterSpacing: -0.3,
   },
   meta: {
     color: colors.accent,
-    marginTop: 4,
+    marginTop: 2,
     fontSize: 12,
     fontWeight: '600',
   },
-  newBtn: {
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     backgroundColor: colors.accentSoft,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
     borderWidth: 1,
     borderColor: colors.accent,
-  },
-  newText: {
-    color: colors.accent,
-    fontWeight: '800',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   banner: {
-    marginHorizontal: 18,
+    marginHorizontal: 16,
     marginBottom: 6,
     backgroundColor: colors.accentSoft,
-    borderRadius: 14,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   bannerText: {
     color: colors.accent,
@@ -153,28 +156,24 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
-    paddingBottom: 24,
+    paddingBottom: 16,
     flexGrow: 1,
   },
   emptyCard: {
-    marginTop: 48,
+    marginTop: 56,
     alignItems: 'center',
-    paddingHorizontal: 18,
-  },
-  emptyGlyph: {
-    color: colors.accent,
-    fontSize: 28,
-    marginBottom: 10,
+    paddingHorizontal: 24,
+    gap: 8,
   },
   emptyTitle: {
     color: colors.text,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
+    marginTop: 4,
   },
   empty: {
     color: colors.textMuted,
-    lineHeight: 22,
-    marginTop: 8,
+    lineHeight: 20,
     textAlign: 'center',
   },
 });

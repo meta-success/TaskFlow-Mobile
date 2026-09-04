@@ -2,6 +2,8 @@ import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Ionicons} from '@expo/vector-icons';
 import {HomeScreen} from '../screens/HomeScreen';
 import {ChatScreen} from '../screens/ChatScreen';
 import {DocumentsScreen} from '../screens/DocumentsScreen';
@@ -14,30 +16,33 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const TABS = [
-  {key: 'Home', glyph: '✦', label: 'Home'},
-  {key: 'Chat', glyph: '◎', label: 'Chat'},
-  {key: 'Documents', glyph: '▣', label: 'Docs'},
-  {key: 'Settings', glyph: '◈', label: 'Aura'},
+  {key: 'Home', label: 'Home', icon: 'home-outline', iconOn: 'home'},
+  {key: 'Chat', label: 'Chat', icon: 'chatbubbles-outline', iconOn: 'chatbubbles'},
+  {key: 'Documents', label: 'Docs', icon: 'folder-open-outline', iconOn: 'folder-open'},
+  {key: 'Settings', label: 'Settings', icon: 'settings-outline', iconOn: 'settings'},
 ];
 
 function AuraTabBar({state, navigation}) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.dock}>
+    <View style={[styles.dock, {paddingBottom: Math.max(insets.bottom, 10)}]}>
       <View style={styles.bar}>
         {state.routes.map((route, index) => {
           const focused = state.index === index;
-          const meta = TABS.find((item) => item.key === route.name) || {
-            glyph: '•',
-            label: route.name,
-          };
+          const meta = TABS.find((item) => item.key === route.name);
           return (
             <Pressable
               key={route.key}
               onPress={() => navigation.navigate(route.name)}
-              style={[styles.item, focused && styles.itemOn]}>
-              <Text style={[styles.glyph, focused && styles.glyphOn]}>
-                {meta.glyph}
-              </Text>
+              style={[styles.item, focused && styles.itemOn]}
+              accessibilityRole="button"
+              accessibilityLabel={meta?.label}>
+              <Ionicons
+                name={focused ? meta.iconOn : meta.icon}
+                size={22}
+                color={focused ? colors.accent : 'rgba(255,255,255,0.72)'}
+              />
               <Text style={[styles.caption, focused && styles.captionOn]}>
                 {meta.label}
               </Text>
@@ -52,10 +57,8 @@ function AuraTabBar({state, navigation}) {
 function MainTabs() {
   return (
     <Tab.Navigator
-      tabBar={AuraTabBar}
-      screenOptions={{
-        headerShown: false,
-      }}>
+      tabBar={(props) => <AuraTabBar {...props} />}
+      screenOptions={{headerShown: false}}>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Chat" component={ChatScreen} />
       <Tab.Screen name="Documents" component={DocumentsScreen} />
@@ -82,41 +85,32 @@ const styles = StyleSheet.create({
   dock: {
     backgroundColor: 'transparent',
     paddingHorizontal: 16,
-    paddingBottom: 12,
-    paddingTop: 4,
+    paddingTop: 6,
   },
   bar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
-    borderRadius: 28,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.45)',
-    padding: 6,
+    backgroundColor: 'rgba(18, 8, 48, 0.88)',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
+    padding: 4,
   },
   item: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
-    borderRadius: 22,
+    borderRadius: 18,
+    gap: 2,
   },
   itemOn: {
-    backgroundColor: colors.primarySoft,
-  },
-  glyph: {
-    color: colors.textDim,
-    fontSize: 16,
-  },
-  glyphOn: {
-    color: colors.accent,
+    backgroundColor: 'rgba(255, 213, 74, 0.18)',
   },
   caption: {
-    color: colors.textDim,
-    fontSize: 10,
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 11,
     fontWeight: '700',
-    marginTop: 3,
-    letterSpacing: 0.3,
   },
   captionOn: {
-    color: colors.text,
+    color: colors.accent,
   },
 });

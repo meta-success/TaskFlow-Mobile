@@ -29,7 +29,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 22,
-    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 24,
   },
 });

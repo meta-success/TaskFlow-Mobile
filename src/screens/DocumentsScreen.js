@@ -2,9 +2,9 @@ import React, {useState} from 'react';
 import {Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {Ionicons} from '@expo/vector-icons';
 import {PrimaryButton} from '../components/PrimaryButton';
 import {Screen} from '../components/Screen';
-import {GlassCard} from '../components/GlassCard';
 import {useAppStore} from '../store/useAppStore';
 import {colors, typography} from '../theme';
 import {formatRelative} from '../utils/format';
@@ -33,15 +33,15 @@ export function DocumentsScreen() {
   return (
     <Screen scroll>
       <SafeAreaView edges={['top']}>
-        <Text style={styles.kicker}>Retrieval</Text>
-        <Text style={styles.title}>Knowledge</Text>
+        <Text style={styles.kicker}>Library</Text>
+        <Text style={styles.title}>Documents</Text>
         <Text style={styles.body}>
-          Upload a note. Aura embeds it with OpenAI, keeps the slices close, and
-          retrieves the most relevant passages before answering.
+          Upload a .txt or .md file, then ask a question against it.
         </Text>
 
         <PrimaryButton
-          label="Upload a document"
+          icon="cloud-upload-outline"
+          label="Upload file"
           onPress={ingestPickedDocument}
           loading={ragLoading}
         />
@@ -49,43 +49,47 @@ export function DocumentsScreen() {
         {notice ? <Text style={styles.notice}>{notice}</Text> : null}
         {globalError ? <Text style={styles.error}>{globalError}</Text> : null}
 
-        <GlassCard style={styles.askBox}>
-          <Text style={styles.section}>Ask the library</Text>
+        <View style={styles.askBox}>
+          <Text style={styles.section}>Ask your files</Text>
           <TextInput
             value={question}
             onChangeText={setQuestion}
-            placeholder="What does this document say about auth?"
+            placeholder="What does this document say?"
             placeholderTextColor={colors.textDim}
             style={styles.input}
             multiline
           />
           <PrimaryButton
+            icon="search"
             label="Ask with RAG"
             onPress={ask}
             loading={chatLoading}
             disabled={!documents.length || !question.trim()}
           />
-        </GlassCard>
+        </View>
 
-        <Text style={styles.section}>Indexed files</Text>
+        <Text style={styles.section}>Files ({documents.length})</Text>
         {documents.length === 0 ? (
-          <Text style={styles.empty}>
-            Nothing catalogued yet. A .txt or .md file is enough.
-          </Text>
+          <Text style={styles.empty}>Nothing uploaded yet.</Text>
         ) : (
           documents.map((doc) => (
             <View key={doc.id} style={styles.card}>
               <View style={styles.mark}>
-                <Text style={styles.markText}>▣</Text>
+                <Ionicons name="document-text" size={18} color={colors.accent} />
               </View>
               <View style={styles.flex}>
-                <Text style={styles.docTitle}>{doc.title}</Text>
+                <Text style={styles.docTitle} numberOfLines={1}>
+                  {doc.title}
+                </Text>
                 <Text style={styles.meta}>
                   {doc.chunkCount} slices · {formatRelative(doc.createdAt)}
                 </Text>
               </View>
-              <Pressable onPress={() => removeDocument(doc.id)}>
-                <Text style={styles.delete}>Remove</Text>
+              <Pressable
+                onPress={() => removeDocument(doc.id)}
+                hitSlop={8}
+                accessibilityLabel="Remove file">
+                <Ionicons name="trash-outline" size={18} color={colors.rose} />
               </Pressable>
             </View>
           ))
@@ -102,12 +106,14 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.display,
-    marginTop: 4,
+    fontSize: 32,
+    marginTop: 2,
   },
   body: {
     color: colors.textMuted,
-    lineHeight: 22,
-    marginVertical: 12,
+    lineHeight: 20,
+    marginTop: 8,
+    marginBottom: 14,
   },
   notice: {
     color: colors.accent,
@@ -119,20 +125,19 @@ const styles = StyleSheet.create({
   },
   askBox: {
     marginTop: 18,
-    gap: 12,
+    gap: 10,
   },
   section: {
     color: colors.text,
     fontWeight: '700',
-    fontSize: 16,
-    marginTop: 22,
-    marginBottom: 10,
+    fontSize: 15,
+    marginTop: 8,
   },
   input: {
-    minHeight: 88,
+    minHeight: 72,
     backgroundColor: colors.bgInput,
     color: colors.text,
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 12,
     textAlignVertical: 'top',
     borderWidth: 1,
@@ -140,28 +145,26 @@ const styles = StyleSheet.create({
   },
   empty: {
     color: colors.textDim,
+    marginTop: 6,
   },
   card: {
-    backgroundColor: 'rgba(16,12,28,0.8)',
-    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
-    padding: 14,
+    borderColor: 'rgba(255,255,255,0.18)',
+    padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 10,
+    gap: 10,
+    marginTop: 8,
   },
   mark: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     backgroundColor: colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  markText: {
-    color: colors.accent,
   },
   flex: {
     flex: 1,
@@ -172,11 +175,7 @@ const styles = StyleSheet.create({
   },
   meta: {
     color: colors.textDim,
-    marginTop: 4,
+    marginTop: 2,
     fontSize: 12,
-  },
-  delete: {
-    color: colors.rose,
-    fontWeight: '700',
   },
 });

@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,7 +12,6 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Ionicons} from '@expo/vector-icons';
 import {PrimaryButton} from '../components/PrimaryButton';
-import {GlassCard} from '../components/GlassCard';
 import {AuroraBackground} from '../components/AuroraBackground';
 import {AuraLogo} from '../components/AuraLogo';
 import {useAppStore} from '../store/useAppStore';
@@ -56,20 +56,12 @@ export function AuthScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
             <View style={styles.hero}>
-              <AuraLogo size={168} />
-              <Text style={styles.kicker}>Welcome to Aura</Text>
+              <AuraLogo size={128} />
               <Text style={styles.title}>Aura AI</Text>
-              <Text style={styles.subtitle}>
-                Bright chats, Edge AI on your phone, and answers grounded in
-                your documents.
-              </Text>
+              <Text style={styles.subtitle}>Chat, documents, and on-device AI.</Text>
             </View>
 
-            <GlassCard glow style={styles.card}>
-              <Text style={styles.cardTitle}>
-                {mode === 'signin' ? 'Let’s begin' : 'Create your studio'}
-              </Text>
-
+            <View style={styles.card}>
               <View style={styles.field}>
                 <Ionicons name="mail-outline" size={18} color={colors.accent} />
                 <TextInput
@@ -103,41 +95,42 @@ export function AuthScreen() {
 
               <View style={styles.actions}>
                 <PrimaryButton
-                  icon="arrow-forward"
+                  icon={mode === 'signin' ? 'arrow-forward' : 'person-add-outline'}
                   label={mode === 'signin' ? 'Continue' : 'Create account'}
                   onPress={submit}
                   loading={authLoading}
                   disabled={!email || !password || !hasSupabaseConfig()}
                 />
+                {hasGoogleSignInConfig() ? (
+                  <PrimaryButton
+                    icon="logo-google"
+                    label="Continue with Google"
+                    variant="ghost"
+                    onPress={signInWithGoogle}
+                    loading={authLoading}
+                    iconColor="#FFFFFF"
+                  />
+                ) : null}
                 <PrimaryButton
-                  icon="person-add-outline"
-                  label={
-                    mode === 'signin'
-                      ? 'Create an account'
-                      : 'I already have access'
-                  }
-                  variant="ghost"
-                  onPress={() =>
-                    setMode(mode === 'signin' ? 'signup' : 'signin')
-                  }
-                />
-                <PrimaryButton
-                  icon="logo-google"
-                  label="Continue with Google"
-                  variant="ghost"
-                  onPress={signInWithGoogle}
-                  loading={authLoading}
-                  disabled={!hasGoogleSignInConfig()}
-                  iconColor="#FFFFFF"
-                />
-                <PrimaryButton
-                  icon="sparkles"
-                  label="Wander as guest"
+                  icon="sparkles-outline"
+                  label="Continue as guest"
                   variant="ghost"
                   onPress={continueAsGuest}
                 />
               </View>
-            </GlassCard>
+
+              <Pressable
+                onPress={() =>
+                  setMode(mode === 'signin' ? 'signup' : 'signin')
+                }
+                style={styles.switchMode}>
+                <Text style={styles.switchText}>
+                  {mode === 'signin'
+                    ? 'Need an account? Sign up'
+                    : 'Already have access? Sign in'}
+                </Text>
+              </Pressable>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -156,64 +149,64 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 28,
+    paddingBottom: 24,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   hero: {
     alignItems: 'center',
-    marginBottom: 18,
-  },
-  kicker: {
-    ...typography.caption,
-    color: colors.accent,
-    marginTop: 10,
+    marginBottom: 20,
   },
   title: {
     ...typography.display,
-    fontSize: 40,
-    marginTop: 2,
-    textShadowColor: 'rgba(255, 213, 74, 0.55)',
+    fontSize: 36,
+    marginTop: 10,
+    textShadowColor: 'rgba(255, 213, 74, 0.45)',
     textShadowOffset: {width: 0, height: 0},
-    textShadowRadius: 16,
+    textShadowRadius: 14,
   },
   subtitle: {
-    ...typography.subtitle,
     color: colors.textMuted,
-    lineHeight: 22,
-    textAlign: 'center',
-    marginTop: 8,
-    paddingHorizontal: 8,
-    fontSize: 16,
+    marginTop: 6,
+    fontSize: 15,
   },
   card: {
-    padding: 0,
-  },
-  cardTitle: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 10,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
+    padding: 16,
   },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     backgroundColor: colors.bgInput,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    minHeight: 50,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    minHeight: 48,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
     marginTop: 10,
   },
   input: {
     flex: 1,
     color: colors.text,
     fontSize: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   actions: {
     marginTop: 14,
-    gap: 10,
+    gap: 8,
+  },
+  switchMode: {
+    alignItems: 'center',
+    paddingTop: 12,
+  },
+  switchText: {
+    color: colors.accent,
+    fontWeight: '700',
+    fontSize: 13,
   },
   error: {
     color: colors.danger,
